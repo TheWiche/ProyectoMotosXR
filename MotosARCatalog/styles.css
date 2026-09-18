@@ -907,7 +907,7 @@ body.ficha-is-open .wa-float-btn {
   z-index: 1;
 }
 
-/* Escenario espacial inercial */
+/* Escenario espacial inercial — Cero transiciones CSS para 60fps puros */
 .ar-spatial-stage {
   position: absolute;
   inset: 0;
@@ -917,7 +917,38 @@ body.ficha-is-open .wa-float-btn {
   transform-origin: 50% 75%;
   will-change: transform;
   pointer-events: auto;
-  transition: transform 0.06s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+/* Retícula interactiva de suelo para posicionar la moto */
+.ar-ground-reticle {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 90px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+  transition: opacity 0.3s;
+}
+.reticle-ring {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed var(--accent-ar);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(163, 230, 53, 0.3);
+}
+.reticle-pulse {
+  position: absolute;
+  inset: 15%;
+  background: radial-gradient(ellipse at center, rgba(163, 230, 53, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: pulse-reticle 2.2s infinite ease-in-out;
+}
+@keyframes pulse-reticle {
+  0%, 100% { transform: scale(0.9); opacity: 0.3; }
+  50% { transform: scale(1.08); opacity: 0.75; }
 }
 
 .ar-camera-model-wrap {
@@ -943,6 +974,49 @@ body.ficha-is-open .wa-float-btn {
   filter: blur(8px);
   pointer-events: none;
   z-index: 1;
+}
+
+/* Barra de órbita 360° para dar la vuelta a la moto */
+.ar-orbit-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--r-pill);
+  padding: 3px 6px;
+  max-width: 100%;
+}
+.ar-orbit-chip {
+  padding: 5px 11px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-pill);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.ar-orbit-chip:active { transform: scale(0.94); }
+.ar-orbit-chip.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-weight: 700;
+}
+.ar-gyro-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  display: inline-block;
+  margin-right: 2px;
 }
 
 /* Flash de cámara blanco animado */
@@ -1178,209 +1252,4 @@ body.ficha-is-open .wa-float-btn {
   background: var(--accent-ar);
   transform: scale(0.92);
 }
-
-/* Badge de temporizador */
-.ar-cam-timer-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 700;
-  background: var(--accent-ar);
-  color: #000;
-  border-radius: var(--r-pill);
-  padding: 1px 5px;
-  line-height: 1.2;
-}
-
-/* Spinner dentro del botón obturador al procesar */
-.ar-shutter-spinner {
-  position: absolute;
-  width: 38px;
-  height: 38px;
-  border: 3px solid rgba(255, 255, 255, 0.25);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-.ar-shutter-btn.capturing .ar-shutter-inner {
-  opacity: 0.2;
-}
-
-/* Countdown Overlay */
-.camera-countdown-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  pointer-events: none;
-}
-.camera-countdown-number {
-  font-family: var(--font);
-  font-size: 88px;
-  font-weight: 800;
-  color: #fff;
-  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), 0 0 16px var(--accent-ar);
-  animation: countdown-pulse 0.95s ease-out infinite;
-}
-@keyframes countdown-pulse {
-  0% { transform: scale(1.6); opacity: 0; }
-  35% { transform: scale(1); opacity: 1; }
-  85% { transform: scale(0.9); opacity: 0.9; }
-  100% { transform: scale(0.8); opacity: 0; }
-}
-
-/* ════════════════════════════════════════════
-   VISTA PREVIA DE FOTO CAPTURADA (FULLSCREEN SHEET)
-════════════════════════════════════════════ */
-.photo-preview-sheet {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100dvh;
-  z-index: 150;
-  background: rgba(11, 15, 25, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: calc(12px + var(--safe-t)) calc(16px + var(--safe-r)) calc(18px + var(--safe-b)) calc(16px + var(--safe-l));
-  animation: slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-.photo-preview-sheet.hidden { display: none !important; }
-
-.photo-sheet-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-bottom: 8px;
-  z-index: 2;
-}
-
-.photo-top-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--r-pill);
-  color: #fff;
-  font-family: var(--font);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.photo-top-btn:active { transform: scale(0.94); background: rgba(255, 255, 255, 0.18); }
-
-.photo-top-btn-accent {
-  background: rgba(163, 230, 53, 0.18);
-  border-color: var(--accent-ar);
-  color: var(--accent-ar);
-}
-.photo-top-btn-accent:active { background: var(--accent-ar); color: #000; }
-
-.photo-badge-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font);
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  background: rgba(30, 41, 59, 0.7);
-  padding: 5px 12px;
-  border-radius: var(--r-pill);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.photo-badge-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
-}
-
-/* Marco de la foto con relación de aspecto natural */
-.photo-frame-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 0;
-  padding: 8px 0;
-}
-.photo-preview-img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: var(--r-lg);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.12);
-}
-
-/* Acciones en la parte inferior */
-.photo-sheet-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  z-index: 2;
-}
-
-.btn-photo-wa {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  width: 100%;
-  padding: 13px;
-  background: var(--accent-wa);
-  color: #fff;
-  font-family: var(--font);
-  font-size: 14px;
-  font-weight: 700;
-  border-radius: var(--r);
-  text-decoration: none;
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
-  transition: transform 0.12s, opacity 0.15s;
-}
-.btn-photo-wa:active { transform: scale(0.97); }
-
-.photo-actions-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  width: 100%;
-}
-
-.btn-photo-sub {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 11px;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--r);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 12.5px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.12s, background 0.15s;
-}
-.btn-photo-sub:active { transform: scale(0.96); background: rgba(51, 65, 85, 0.9); }
 
