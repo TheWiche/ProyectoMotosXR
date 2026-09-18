@@ -181,26 +181,26 @@ function bindEls() {
     arToast:            document.getElementById('arToast'),
     arToastMsg:         document.getElementById('arToastMsg'),
 
-    /* Modal de Selección AR */
-    arChoiceModal:      document.getElementById('arChoiceModal'),
-    arChoiceClose:      document.getElementById('arChoiceClose'),
-    btnLaunchCameraAR:  document.getElementById('btnLaunchCameraAR'),
-    btnLaunchNativeAR:  document.getElementById('btnLaunchNativeAR'),
-
-    /* Vista Cámara AR Universal */
+    /* Vista Cámara AR Universal con Anclaje Espacial */
     arCameraView:       document.getElementById('arCameraView'),
     arCameraFeed:       document.getElementById('arCameraFeed'),
     arCaptureCanvas:    document.getElementById('arCaptureCanvas'),
     cameraFlash:        document.getElementById('cameraFlash'),
+    arSpatialStage:     document.getElementById('arSpatialStage'),
+    arCameraModelWrap:  document.getElementById('arCameraModelWrap'),
+    arFloorShadow:      document.getElementById('arFloorShadow'),
     cameraMv:           document.getElementById('cameraMv'),
     arCamClose:         document.getElementById('arCamClose'),
     arCamMotoNombre:    document.getElementById('arCamMotoNombre'),
-    arCamResetScale:    document.getElementById('arCamResetScale'),
+    spatialStatusDot:   document.getElementById('spatialStatusDot'),
+    arCamAnchorBtn:     document.getElementById('arCamAnchorBtn'),
     arCamRotate180:     document.getElementById('arCamRotate180'),
+    arCamTip:           document.getElementById('arCamTip'),
+    arCamTipText:       document.getElementById('arCamTipText'),
+    toggleSpatialBtn:   document.getElementById('toggleSpatialBtn'),
     arCamPrev:          document.getElementById('arCamPrev'),
     arCamNext:          document.getElementById('arCamNext'),
     arCamCapture:       document.getElementById('arCamCapture'),
-    arCamTip:           document.getElementById('arCamTip'),
 
     /* Modal de Foto Capturada */
     photoModal:         document.getElementById('photoModal'),
@@ -361,28 +361,191 @@ function buildSelector() {
 }
 
 /* ══════════════════════════════════════════════
-   ACTIVAR REALIDAD AUMENTADA (AR)
+   ESTADO Y MOTOR DE ANCLAJE ESPACIAL (WebAR)
+   Mantiene la moto fijada físicamente en el piso
 ══════════════════════════════════════════════ */
-function requestAR() {
-  // En iPhone y Android siempre mostramos el selector para que puedan usar la Cámara AR Universal
-  el.arChoiceModal.classList.remove('hidden');
+const spatialState = {
+  active:          true,      // Modo "Espacio Fijo" activo
+  tracking:        false,     // Recibiendo datos de giroscopio/brújula
+  hasAnchor:       false,     // Punto de origen establecido
+  anchorAlpha:     null,      // Rumbo de brújula o giroscopio base (0-360)
+  anchorBeta:      null,      // Inclinación vertical base (grados)
+  currentAlpha:    null,
+  currentBeta:     null,
+  currentGamma:    null,
+  posX:            0,         // Desplazamiento suavizado X en pantalla
+  posY:            0,         // Desplazamiento suavizado Y en pantalla
+  targetX:         0,         // Desplazamiento objetivo X
+  targetY:         0,         // Desplazamiento objetivo Y
+  baseOrbitDeg:    0,         // Ángulo de órbita base de la moto
+  currentOrbitDeg: 0,         // Órbita suavizada actual
+  targetOrbitDeg:  0,         // Órbita objetivo calculada
+  animId:          null,
+  tipTimer:        null,
+};
+
+function showArCamTip(text) {
+  if (!el.arCamTip || !el.arCamTipText) return;
+  el.arCamTipText.textContent = text;
+  el.arCamTip.style.opacity = '1';
+  clearTimeout(spatialState.tipTimer);
+  spatialState.tipTimer = setTimeout(() => {
+    if (el.arCamTip) el.arCamTip.style.opacity = '0';
+  }, 4000);
 }
 
-function launchNativeAR() {
-  el.arChoiceModal.classList.add('hidden');
-  if (el.mv.canActivateAR) {
-    el.mv.activateAR();
-  } else {
-    showARToast("Google Scene Viewer no disponible. Iniciando Cámara AR en Vivo...");
-    setTimeout(() => startCameraAR(), 1200);
+function setSpatialAnchor(alpha, beta) {
+  const a = (alpha !== undefined && alpha !== null) ? alpha : spatialState.currentAlpha;
+  const b = (beta !== undefined && beta !== null) ? beta : spatialState.currentBeta;
+
+  spatialState.anchorAlpha = (a !== null && a !== undefined) ? a : 0;
+  spatialState.anchorBeta  = (b !== null && b !== undefined) ? b : 60;
+  spatialState.hasAnchor   = true;
+  spatialState.targetX     = 0;
+  spatialState.targetY     = 0;
+  spatialState.posX        = 0;
+  spatialState.posY        = 0;
+  spatialState.targetOrbitDeg  = spatialState.baseOrbitDeg;
+  spatialState.currentOrbitDeg = spatialState.baseOrbitDeg;
+
+  if (el.arSpatialStage) {
+    el.arSpatialStage.style.transform = 'translate3d(0, 0, 0)';
   }
+  if (el.cameraMv) {
+    el.cameraMv.setAttribute('camera-orbit', `${spatialState.baseOrbitDeg}deg 78deg 2.6m`);
+  }
+
+  showArCamTip('¡Moto anclada en este punto del piso!');
+  try { if (navigator.vibrate) navigator.vibrate(50); } catch (_) {}
+}
+
+function onDeviceOrientation(e) {
+  let alpha = (e.webkitCompassHeading !== undefined)
+    ? (360 - e.webkitCompassHeading)
+    : e.alpha;
+  let beta  = e.beta;
+  let gamma = e.gamma;
+
+  if (alpha === null || alpha === undefined || beta === null || beta === undefined) return;
+
+  spatialState.tracking = true;
+  spatialState.currentAlpha = alpha;
+  spatialState.currentBeta  = beta;
+  spatialState.currentGamma = gamma;
+
+  // Si no se ha fijado origen, anclar en la primera lectura apuntando al piso
+  if (!spatialState.hasAnchor) {
+    setSpatialAnchor(alpha, beta);
+    return;
+  }
+
+  if (!spatialState.active) return;
+
+  // 1. Diferencia angular de azimut/yaw con manejo de cruce por 360° [-180, 180]
+  let diffAlpha = alpha - spatialState.anchorAlpha;
+  diffAlpha = ((diffAlpha + 180) % 360 + 360) % 360 - 180;
+
+  // 2. Diferencia angular de inclinación/pitch
+  let diffBeta = beta - spatialState.anchorBeta;
+
+  // Sensibilidad proporcional a las dimensiones de la pantalla y el FOV promedio de cámara de smartphone
+  const screenW = window.innerWidth || 390;
+  const screenH = window.innerHeight || 844;
+  const pxPerDegX = screenW / 50; // Aprox. 50° FOV horizontal
+  const pxPerDegY = screenH / 65; // Aprox. 65° FOV vertical
+
+  // Si el usuario gira el teléfono hacia la derecha, el objeto fijo en el piso debe moverse a la izquierda
+  spatialState.targetX = -diffAlpha * pxPerDegX;
+
+  // Si el usuario inclina el teléfono hacia arriba (horizonte), el piso baja en pantalla
+  spatialState.targetY = diffBeta * pxPerDegY;
+
+  // Contra-rotación: al rodear o mirar la moto desde otro ángulo, se visualizan sus costados o parte trasera
+  spatialState.targetOrbitDeg = spatialState.baseOrbitDeg - diffAlpha;
+}
+
+function spatialLoop() {
+  if (!state.isCameraActive) return;
+
+  if (spatialState.active && spatialState.hasAnchor) {
+    // Interpolación lineal suave (lerp) para eliminar temblor y lograr 60fps fluidos
+    spatialState.posX += (spatialState.targetX - spatialState.posX) * 0.22;
+    spatialState.posY += (spatialState.targetY - spatialState.posY) * 0.22;
+    spatialState.currentOrbitDeg += (spatialState.targetOrbitDeg - spatialState.currentOrbitDeg) * 0.22;
+
+    if (el.arSpatialStage) {
+      el.arSpatialStage.style.transform = `translate3d(${spatialState.posX.toFixed(1)}px, ${spatialState.posY.toFixed(1)}px, 0)`;
+    }
+
+    if (el.cameraMv) {
+      const deg = (spatialState.currentOrbitDeg % 360).toFixed(1);
+      el.cameraMv.setAttribute('camera-orbit', `${deg}deg 78deg 2.6m`);
+    }
+
+    if (el.spatialStatusDot) {
+      el.spatialStatusDot.style.background = '#22c55e';
+      el.spatialStatusDot.style.boxShadow = '0 0 8px #22c55e';
+    }
+  } else if (!spatialState.active) {
+    // En modo libre el escenario no se traslada
+    if (el.arSpatialStage) {
+      el.arSpatialStage.style.transform = 'translate3d(0, 0, 0)';
+    }
+    if (el.spatialStatusDot) {
+      el.spatialStatusDot.style.background = '#f59e0b';
+      el.spatialStatusDot.style.boxShadow = '0 0 8px #f59e0b';
+    }
+  }
+
+  spatialState.animId = requestAnimationFrame(spatialLoop);
+}
+
+function toggleSpatialMode() {
+  spatialState.active = !spatialState.active;
+  if (el.toggleSpatialBtn) {
+    el.toggleSpatialBtn.classList.toggle('active', spatialState.active);
+    const span = el.toggleSpatialBtn.querySelector('span');
+    if (span) {
+      span.textContent = spatialState.active ? 'Espacio Fijo' : 'Modo Libre';
+    }
+  }
+
+  if (spatialState.active) {
+    setSpatialAnchor();
+    showArCamTip('Espacio Fijo activado: La moto se queda fija en tu piso');
+  } else {
+    if (el.arSpatialStage) {
+      el.arSpatialStage.style.transform = 'translate3d(0, 0, 0)';
+    }
+    showArCamTip('Modo Libre: Arrastra y rota la moto con tus dedos');
+  }
+}
+
+/* ══════════════════════════════════════════════
+   ACTIVAR REALIDAD AUMENTADA DIRECTA (100% DISPOSITIVOS)
+══════════════════════════════════════════════ */
+async function requestAR() {
+  // En Safari iOS 13+, DeviceOrientation requiere permiso explícito en un evento de usuario
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const permission = await DeviceOrientationEvent.requestPermission();
+      if (permission === 'granted') {
+        console.log('Permiso de orientación concedido en iOS');
+      }
+    } catch (e) {
+      console.warn('Permiso de orientación en iOS:', e);
+    }
+  }
+
+  // Apertura directa e instantánea de la Cámara AR con anclaje universal
+  await startCameraAR();
 }
 
 function showARToast(msg) {
   const m = MOTOS[state.motoIdx];
   el.arToastMsg.textContent = msg || `Iniciando Cámara AR en Vivo...`;
   el.arToast.classList.remove('hidden');
-  setTimeout(() => el.arToast.classList.add('hidden'), 5000);
+  setTimeout(() => el.arToast.classList.add('hidden'), 4000);
 }
 
 /* ══════════════════════════════════════════════
@@ -390,11 +553,10 @@ function showARToast(msg) {
    Funciona en el 100% de iPhones y Androids con cámara web
 ══════════════════════════════════════════════ */
 async function startCameraAR() {
-  el.arChoiceModal.classList.add('hidden');
   const m = MOTOS[state.motoIdx];
 
   try {
-    // Solicitar cámara trasera (environment)
+    // Solicitar cámara trasera (environment) de alta resolución
     const constraints = {
       video: {
         facingMode: { ideal: 'environment' },
@@ -424,10 +586,27 @@ async function startCameraAR() {
     el.cameraMv.fieldOfView = '35deg';
     setCameraScale(1.0);
 
-    // Ocultar tip a los 4s
-    setTimeout(() => {
-      if (el.arCamTip) el.arCamTip.style.opacity = '0';
-    }, 4500);
+    // Iniciar rastreo de orientación física
+    spatialState.hasAnchor = false;
+    spatialState.anchorAlpha = null;
+    spatialState.anchorBeta = null;
+    spatialState.posX = 0;
+    spatialState.posY = 0;
+    spatialState.targetX = 0;
+    spatialState.targetY = 0;
+    spatialState.baseOrbitDeg = 0;
+    spatialState.currentOrbitDeg = 0;
+    spatialState.targetOrbitDeg = 0;
+
+    window.addEventListener('deviceorientation', onDeviceOrientation, true);
+    if ('ondeviceorientationabsolute' in window) {
+      window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
+    }
+
+    if (spatialState.animId) cancelAnimationFrame(spatialState.animId);
+    spatialState.animId = requestAnimationFrame(spatialLoop);
+
+    showArCamTip('Apunta al piso · Toca "Fijar en piso" para anclar la moto');
 
   } catch (err) {
     console.warn('Error accediendo a la cámara:', err);
@@ -440,9 +619,24 @@ function stopCameraAR() {
     state.cameraStream.getTracks().forEach(track => track.stop());
     state.cameraStream = null;
   }
+
+  window.removeEventListener('deviceorientation', onDeviceOrientation, true);
+  if ('ondeviceorientationabsolute' in window) {
+    window.removeEventListener('deviceorientationabsolute', onDeviceOrientation, true);
+  }
+
+  if (spatialState.animId) {
+    cancelAnimationFrame(spatialState.animId);
+    spatialState.animId = null;
+  }
+
   state.isCameraActive = false;
   el.arCameraView.classList.add('hidden');
   el.arCameraFeed.srcObject = null;
+
+  if (el.arSpatialStage) {
+    el.arSpatialStage.style.transform = 'translate3d(0, 0, 0)';
+  }
 }
 
 function setCameraScale(scale) {
@@ -456,7 +650,7 @@ function setCameraScale(scale) {
 }
 
 /* ══════════════════════════════════════════════
-   CAPTURAR FOTO CON LA MOTO
+   CAPTURAR FOTO CON LA MOTO ANCLADA
 ══════════════════════════════════════════════ */
 async function captureARPhoto() {
   // Efecto Flash fotográfico
@@ -470,7 +664,7 @@ async function captureARPhoto() {
 
   // Vibración háptica en móvil
   try {
-    if (navigator.vibrate) navigator.vibrate(50);
+    if (navigator.vibrate) navigator.vibrate(60);
   } catch (_) {}
 
   const video = el.arCameraFeed;
@@ -490,34 +684,41 @@ async function captureARPhoto() {
     const motoImg = new Image();
     motoImg.crossOrigin = 'anonymous';
     motoImg.onload = () => {
-      // Dibujar sombra elíptica de suelo en el canvas
-      const shadowX = canvas.width * 0.5;
-      const shadowY = canvas.height * 0.78;
-      const shadowRx = canvas.width * 0.35;
-      const shadowRy = 35;
+      // Escalar desplazamiento espacial a la resolución real del canvas
+      const scaleX = canvas.width / (window.innerWidth || canvas.width);
+      const scaleY = canvas.height / (window.innerHeight || canvas.height);
+      const drawOffsetX = (spatialState.active ? spatialState.posX : 0) * scaleX;
+      const drawOffsetY = (spatialState.active ? spatialState.posY : 0) * scaleY;
+
+      // Sombra elíptica realista en el piso compuesta con el desplazamiento
+      const shadowX = canvas.width * 0.5 + drawOffsetX;
+      const shadowY = canvas.height * 0.78 + drawOffsetY;
+      const shadowRx = canvas.width * 0.35 * state.cameraScale;
+      const shadowRy = 35 * state.cameraScale;
+
       const grad = ctx.createRadialGradient(shadowX, shadowY, 0, shadowX, shadowY, shadowRx);
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
-      grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.25)');
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0.65)');
+      grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.28)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.ellipse(shadowX, shadowY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Dibujar la moto sobre la foto de la cámara
-      ctx.drawImage(motoImg, 0, 0, canvas.width, canvas.height);
+      // Dibujar la moto en la posición exacta fijada en la habitación
+      ctx.drawImage(motoImg, drawOffsetX, drawOffsetY, canvas.width, canvas.height);
 
-      // Marca de agua sutil
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 26px Space Grotesk, sans-serif';
-      ctx.fillText(MOTOS[state.motoIdx].nombre + ' — MotosAR Colombia', 36, canvas.height - 36);
+      // Marca de agua premium
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      ctx.font = 'bold 28px Space Grotesk, sans-serif';
+      ctx.fillText(MOTOS[state.motoIdx].nombre + ' · MotosAR Colombia', 40, canvas.height - 40);
 
       // Exportar resultado a imagen
       const finalPhoto = canvas.toDataURL('image/png');
       el.photoPreviewImg.src = finalPhoto;
       el.photoDownloadBtn.href = finalPhoto;
 
-      // Actualizar link de WhatsApp con la foto
+      // Actualizar link de WhatsApp con la cotización de la foto
       const m = MOTOS[state.motoIdx];
       const waText = encodeURIComponent(
         `¡Hola! Acabo de probar la *${m.nombre}* en mi espacio en Realidad Aumentada y quiero cotizarla. Precio: ${formatCOP(m.precio)}`
@@ -658,12 +859,7 @@ function initEvents() {
     el.panelArBtn.addEventListener('click', requestAR);
   }
 
-  /* Modal de Selección AR */
-  el.btnLaunchCameraAR.addEventListener('click', startCameraAR);
-  el.btnLaunchNativeAR.addEventListener('click', launchNativeAR);
-  el.arChoiceClose.addEventListener('click', () => el.arChoiceModal.classList.add('hidden'));
-
-  /* Controles de Cámara AR */
+  /* Controles de Cámara AR Universal */
   el.arCamClose.addEventListener('click', stopCameraAR);
   el.arCamCapture.addEventListener('click', captureARPhoto);
   el.arCamPrev.addEventListener('click', () => {
@@ -672,22 +868,28 @@ function initEvents() {
   el.arCamNext.addEventListener('click', () => {
     loadMoto((state.motoIdx + 1) % MOTOS.length);
   });
-  el.arCamResetScale.addEventListener('click', () => {
-    setCameraScale(1.0);
-    if (el.cameraMv) {
-      el.cameraMv.cameraTarget = '0m 0.45m 0m';
-      el.cameraMv.cameraOrbit = '0deg 78deg 2.6m';
-      el.cameraMv.fieldOfView = '35deg';
-    }
-  });
+
+  /* Botón fijar moto en el punto actual del piso */
+  if (el.arCamAnchorBtn) {
+    el.arCamAnchorBtn.addEventListener('click', () => {
+      setSpatialAnchor();
+    });
+  }
+
+  /* Toggle modo Espacio Fijo / Modo Libre */
+  if (el.toggleSpatialBtn) {
+    el.toggleSpatialBtn.addEventListener('click', toggleSpatialMode);
+  }
 
   /* Botón girar 180 grados en cámara */
   if (el.arCamRotate180) {
     el.arCamRotate180.addEventListener('click', () => {
-      const curOrbit = el.cameraMv.getAttribute('camera-orbit') || '0deg 78deg 2.6m';
-      const deg = parseFloat(curOrbit) || 0;
-      const nextDeg = (deg + 180) % 360;
-      el.cameraMv.cameraOrbit = `${nextDeg}deg 78deg 2.6m`;
+      spatialState.baseOrbitDeg = (spatialState.baseOrbitDeg + 180) % 360;
+      spatialState.targetOrbitDeg = spatialState.baseOrbitDeg;
+      spatialState.currentOrbitDeg = spatialState.baseOrbitDeg;
+      if (el.cameraMv) {
+        el.cameraMv.setAttribute('camera-orbit', `${spatialState.baseOrbitDeg}deg 78deg 2.6m`);
+      }
     });
   }
 
@@ -729,7 +931,6 @@ function initEvents() {
     if (e.key === 'Escape') {
       if (!el.arCameraView.classList.contains('hidden')) { stopCameraAR(); return; }
       if (!el.photoModal.classList.contains('hidden')) { el.photoModal.classList.add('hidden'); return; }
-      if (!el.arChoiceModal.classList.contains('hidden')) { el.arChoiceModal.classList.add('hidden'); return; }
       if (!el.qrModal.classList.contains('hidden')) { closeQRModal(); return; }
       if (state.fichaAbierta) { toggleFicha(false); return; }
     }
