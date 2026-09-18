@@ -133,7 +133,11 @@ const state = {
   loadTimer:      null,
   cameraStream:   null,
   cameraScale:    1.0,
+  cameraTimerSec: 0,
   isCameraActive: false,
+  isCapturing:    false,
+  lastPhotoBlob:  null,
+  lastPhotoUrl:   null,
 };
 
 /* ══════════════════════════════════════════════
@@ -143,32 +147,32 @@ let el = {};
 
 function bindEls() {
   el = {
-    mv:                 document.getElementById('mv'),
-    selector:           document.getElementById('selector'),
-    accentBar:          document.getElementById('accentBar'),
-    loadOverlay:        document.getElementById('loadOverlay'),
-    loadBar:            document.getElementById('loadBar'),
-    viewerTip:          document.getElementById('viewerTip'),
-    navPrev:            document.getElementById('navPrev'),
-    navNext:            document.getElementById('navNext'),
-    arPrompt:           document.getElementById('arPrompt'),
-    arPromptMoto:       document.getElementById('arPromptMoto'),
-    arPromptBtn:        document.getElementById('arPromptBtn'),
-    arPromptSkip:       document.getElementById('arPromptSkip'),
-    motoMarca:          document.getElementById('motoMarca'),
-    motoNombre:         document.getElementById('motoNombre'),
-    motoPrecio:         document.getElementById('motoPrecio'),
-    motoFinanc:         document.getElementById('motoFinanc'),
-    motoDesc:           document.getElementById('motoDesc'),
-    motoTags:           document.getElementById('motoTags'),
-    motoSpecs:          document.getElementById('motoSpecs'),
-    fichaPanel:         document.getElementById('fichaPanel'),
-    fichaToggle:        document.getElementById('fichaToggle'),
-    fichaCompact:       document.getElementById('fichaCompact'),
-    fichaExpanded:      document.getElementById('fichaExpanded'),
-    panelArBtn:         document.getElementById('panelArBtn'),
-    panelWaBtn:         document.getElementById('panelWaBtn'),
-    arFloatBtn:         document.getElementById('arFloatBtn'),
+    mv:                     document.getElementById('mv'),
+    selector:               document.getElementById('selector'),
+    accentBar:              document.getElementById('accentBar'),
+    loadOverlay:            document.getElementById('loadOverlay'),
+    loadBar:                document.getElementById('loadBar'),
+    viewerTip:              document.getElementById('viewerTip'),
+    navPrev:                document.getElementById('navPrev'),
+    navNext:                document.getElementById('navNext'),
+    arPrompt:               document.getElementById('arPrompt'),
+    arPromptMoto:           document.getElementById('arPromptMoto'),
+    arPromptBtn:            document.getElementById('arPromptBtn'),
+    arPromptSkip:           document.getElementById('arPromptSkip'),
+    motoMarca:              document.getElementById('motoMarca'),
+    motoNombre:             document.getElementById('motoNombre'),
+    motoPrecio:             document.getElementById('motoPrecio'),
+    motoFinanc:             document.getElementById('motoFinanc'),
+    motoDesc:               document.getElementById('motoDesc'),
+    motoTags:               document.getElementById('motoTags'),
+    motoSpecs:              document.getElementById('motoSpecs'),
+    fichaPanel:             document.getElementById('fichaPanel'),
+    fichaToggle:            document.getElementById('fichaToggle'),
+    fichaCompact:           document.getElementById('fichaCompact'),
+    fichaExpanded:          document.getElementById('fichaExpanded'),
+    panelArBtn:             document.getElementById('panelArBtn'),
+    panelWaBtn:             document.getElementById('panelWaBtn'),
+    arFloatBtn:             document.getElementById('arFloatBtn'),
     waBtn:              document.getElementById('waBtn'),
     qrBtn:              document.getElementById('qrBtn'),
     qrModal:            document.getElementById('qrModal'),
@@ -182,33 +186,42 @@ function bindEls() {
     arToastMsg:         document.getElementById('arToastMsg'),
 
     /* Vista Cámara AR Universal con Anclaje Espacial */
-    arCameraView:       document.getElementById('arCameraView'),
-    arCameraFeed:       document.getElementById('arCameraFeed'),
-    arCaptureCanvas:    document.getElementById('arCaptureCanvas'),
-    cameraFlash:        document.getElementById('cameraFlash'),
-    arSpatialStage:     document.getElementById('arSpatialStage'),
-    arCameraModelWrap:  document.getElementById('arCameraModelWrap'),
-    arFloorShadow:      document.getElementById('arFloorShadow'),
-    cameraMv:           document.getElementById('cameraMv'),
-    arCamClose:         document.getElementById('arCamClose'),
-    arCamMotoNombre:    document.getElementById('arCamMotoNombre'),
-    spatialStatusDot:   document.getElementById('spatialStatusDot'),
-    arCamAnchorBtn:     document.getElementById('arCamAnchorBtn'),
-    arCamRotate180:     document.getElementById('arCamRotate180'),
-    arCamTip:           document.getElementById('arCamTip'),
-    arCamTipText:       document.getElementById('arCamTipText'),
-    toggleSpatialBtn:   document.getElementById('toggleSpatialBtn'),
-    arCamPrev:          document.getElementById('arCamPrev'),
-    arCamNext:          document.getElementById('arCamNext'),
-    arCamCapture:       document.getElementById('arCamCapture'),
+    arCameraView:           document.getElementById('arCameraView'),
+    arCameraFeed:           document.getElementById('arCameraFeed'),
+    arCaptureCanvas:        document.getElementById('arCaptureCanvas'),
+    cameraFlash:            document.getElementById('cameraFlash'),
+    cameraCountdownOverlay: document.getElementById('cameraCountdownOverlay'),
+    cameraCountdownNumber:  document.getElementById('cameraCountdownNumber'),
+    arSpatialStage:         document.getElementById('arSpatialStage'),
+    arCameraModelWrap:      document.getElementById('arCameraModelWrap'),
+    arFloorShadow:          document.getElementById('arFloorShadow'),
+    cameraMv:               document.getElementById('cameraMv'),
+    arCamClose:             document.getElementById('arCamClose'),
+    arCamMotoNombre:        document.getElementById('arCamMotoNombre'),
+    spatialStatusDot:       document.getElementById('spatialStatusDot'),
+    arCamTimerBtn:          document.getElementById('arCamTimerBtn'),
+    arCamTimerBadge:        document.getElementById('arCamTimerBadge'),
+    arCamAnchorBtn:         document.getElementById('arCamAnchorBtn'),
+    arCamRotate180:         document.getElementById('arCamRotate180'),
+    arCamTip:               document.getElementById('arCamTip'),
+    arCamTipText:           document.getElementById('arCamTipText'),
+    toggleSpatialBtn:       document.getElementById('toggleSpatialBtn'),
+    arCamPrev:              document.getElementById('arCamPrev'),
+    arCamNext:              document.getElementById('arCamNext'),
+    arCamCapture:           document.getElementById('arCamCapture'),
+    arShutterInner:         document.getElementById('arShutterInner'),
+    arShutterSpinner:       document.getElementById('arShutterSpinner'),
+    arShutterLabel:         document.getElementById('arShutterLabel'),
 
-    /* Modal de Foto Capturada */
-    photoModal:         document.getElementById('photoModal'),
-    photoModalClose:    document.getElementById('photoModalClose'),
-    photoPreviewImg:    document.getElementById('photoPreviewImg'),
-    photoDownloadBtn:   document.getElementById('photoDownloadBtn'),
-    photoWaBtn:         document.getElementById('photoWaBtn'),
-    photoRetakeBtn:     document.getElementById('photoRetakeBtn'),
+    /* Vista Previa de Foto Capturada */
+    photoModal:             document.getElementById('photoModal'),
+    photoModalClose:        document.getElementById('photoModalClose'),
+    photoMotoBadge:         document.getElementById('photoMotoBadge'),
+    photoNativeShareBtn:    document.getElementById('photoNativeShareBtn'),
+    photoPreviewImg:        document.getElementById('photoPreviewImg'),
+    photoDownloadBtn:       document.getElementById('photoDownloadBtn'),
+    photoWaBtn:             document.getElementById('photoWaBtn'),
+    photoRetakeBtn:         document.getElementById('photoRetakeBtn'),
   };
 }
 
@@ -650,91 +663,334 @@ function setCameraScale(scale) {
 }
 
 /* ══════════════════════════════════════════════
-   CAPTURAR FOTO CON LA MOTO ANCLADA
+   EFECTOS DE AUDIO SINTETIZADOS (Web Audio API)
+   Sin archivos externos: instantáneo en 3G/4G y compatible con iOS y Android
 ══════════════════════════════════════════════ */
-async function captureARPhoto() {
-  // Efecto Flash fotográfico
+let audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) audioCtx = new AudioCtx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playCameraShutterSound() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    // Click 1: Apertura de cortinilla mecánica
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(850, now);
+    osc1.frequency.exponentialRampToValueAtTime(140, now + 0.07);
+
+    gain1.gain.setValueAtTime(0.4, now);
+    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.07);
+
+    // Click 2: Cierre de obturador tras 60ms
+    setTimeout(() => {
+      try {
+        const now2 = ctx.currentTime;
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(450, now2);
+        osc2.frequency.exponentialRampToValueAtTime(90, now2 + 0.09);
+
+        gain2.gain.setValueAtTime(0.35, now2);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now2 + 0.09);
+
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now2);
+        osc2.stop(now2 + 0.09);
+      } catch (_) {}
+    }, 60);
+  } catch (_) {}
+}
+
+function playCountdownBeep(isFinal) {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(isFinal ? 1350 : 750, now);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + (isFinal ? 0.22 : 0.12));
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + (isFinal ? 0.22 : 0.12));
+  } catch (_) {}
+}
+
+function toggleCameraTimer() {
+  // Alterna entre 0s y 3s
+  state.cameraTimerSec = (state.cameraTimerSec === 0) ? 3 : 0;
+  if (el.arCamTimerBadge) {
+    el.arCamTimerBadge.textContent = state.cameraTimerSec + 's';
+  }
+  if (el.arCamTimerBtn) {
+    el.arCamTimerBtn.style.color = (state.cameraTimerSec > 0) ? 'var(--accent-ar)' : '#fff';
+    el.arCamTimerBtn.style.borderColor = (state.cameraTimerSec > 0) ? 'var(--accent-ar)' : 'rgba(255,255,255,0.15)';
+  }
+
+  showArCamTip(state.cameraTimerSec > 0 ? '⏱️ Temporizador de 3s activado (prepárate para la foto)' : '⏱️ Temporizador desactivado');
+  try { if (navigator.vibrate) navigator.vibrate(30); } catch (_) {}
+}
+
+/* ══════════════════════════════════════════════
+   FLUJO DE CAPTURA FOTOGRÁFICA
+══════════════════════════════════════════════ */
+function triggerPhotoCapture() {
+  if (state.isCapturing) return;
+
+  if (state.cameraTimerSec > 0) {
+    // Cuenta regresiva 3, 2, 1
+    state.isCapturing = true;
+    let count = state.cameraTimerSec;
+
+    el.cameraCountdownOverlay.classList.remove('hidden');
+    el.cameraCountdownNumber.textContent = count;
+    playCountdownBeep(false);
+    try { if (navigator.vibrate) navigator.vibrate(40); } catch (_) {}
+
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        el.cameraCountdownNumber.textContent = count;
+        // Reiniciar animación css de pulso
+        el.cameraCountdownNumber.style.animation = 'none';
+        void el.cameraCountdownNumber.offsetWidth;
+        el.cameraCountdownNumber.style.animation = '';
+        playCountdownBeep(false);
+        try { if (navigator.vibrate) navigator.vibrate(40); } catch (_) {}
+      } else {
+        clearInterval(interval);
+        el.cameraCountdownOverlay.classList.add('hidden');
+        playCountdownBeep(true);
+        executePhotoSnap();
+      }
+    }, 1000);
+  } else {
+    executePhotoSnap();
+  }
+}
+
+async function executePhotoSnap() {
+  state.isCapturing = true;
+
+  // Estado UI en el botón obturador
+  if (el.arCamCapture) el.arCamCapture.classList.add('capturing');
+  if (el.arShutterSpinner) el.arShutterSpinner.classList.remove('hidden');
+  if (el.arShutterInner) el.arShutterInner.style.opacity = '0.2';
+  if (el.arShutterLabel) el.arShutterLabel.textContent = '...';
+
+  // Sonido de obturador y hápticos duales
+  playCameraShutterSound();
+  try { if (navigator.vibrate) navigator.vibrate([40, 30, 60]); } catch (_) {}
+
+  // Flash blanco en pantalla
   if (el.cameraFlash) {
     el.cameraFlash.classList.remove('hidden', 'fade');
     setTimeout(() => {
       el.cameraFlash.classList.add('fade');
       setTimeout(() => el.cameraFlash.classList.add('hidden'), 350);
-    }, 40);
+    }, 45);
   }
-
-  // Vibración háptica en móvil
-  try {
-    if (navigator.vibrate) navigator.vibrate(60);
-  } catch (_) {}
 
   const video = el.arCameraFeed;
   const canvas = el.arCaptureCanvas;
-  if (!video || !video.videoWidth) return;
+  if (!video || !video.videoWidth) {
+    resetShutterButton();
+    return;
+  }
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
 
-  // 1. Dibujar el fotograma en vivo de la cámara trasera
+  // 1. Fotograma en vivo de la cámara en alta resolución
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // 2. Obtener el render transparente del modelo 3D desde model-viewer
+  // 2. Render 3D de model-viewer
   try {
     const dataUrl = await el.cameraMv.toDataURL('image/png');
     const motoImg = new Image();
     motoImg.crossOrigin = 'anonymous';
     motoImg.onload = () => {
-      // Escalar desplazamiento espacial a la resolución real del canvas
       const scaleX = canvas.width / (window.innerWidth || canvas.width);
       const scaleY = canvas.height / (window.innerHeight || canvas.height);
       const drawOffsetX = (spatialState.active ? spatialState.posX : 0) * scaleX;
       const drawOffsetY = (spatialState.active ? spatialState.posY : 0) * scaleY;
 
-      // Sombra elíptica realista en el piso compuesta con el desplazamiento
+      // Sombra elíptica realista en el suelo
       const shadowX = canvas.width * 0.5 + drawOffsetX;
       const shadowY = canvas.height * 0.78 + drawOffsetY;
       const shadowRx = canvas.width * 0.35 * state.cameraScale;
       const shadowRy = 35 * state.cameraScale;
 
       const grad = ctx.createRadialGradient(shadowX, shadowY, 0, shadowX, shadowY, shadowRx);
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0.65)');
-      grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.28)');
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0.68)');
+      grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.3)');
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.ellipse(shadowX, shadowY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Dibujar la moto en la posición exacta fijada en la habitación
+      // Dibujar modelo 3D en la posición fija en la habitación
       ctx.drawImage(motoImg, drawOffsetX, drawOffsetY, canvas.width, canvas.height);
 
-      // Marca de agua premium
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-      ctx.font = 'bold 28px Space Grotesk, sans-serif';
-      ctx.fillText(MOTOS[state.motoIdx].nombre + ' · MotosAR Colombia', 40, canvas.height - 40);
-
-      // Exportar resultado a imagen
-      const finalPhoto = canvas.toDataURL('image/png');
-      el.photoPreviewImg.src = finalPhoto;
-      el.photoDownloadBtn.href = finalPhoto;
-
-      // Actualizar link de WhatsApp con la cotización de la foto
+      // 3. Banner fotográfico inferior tipo editorial automotriz
       const m = MOTOS[state.motoIdx];
-      const waText = encodeURIComponent(
-        `¡Hola! Acabo de probar la *${m.nombre}* en mi espacio en Realidad Aumentada y quiero cotizarla. Precio: ${formatCOP(m.precio)}`
-      );
-      el.photoWaBtn.href = `https://wa.me/${CONFIG.whatsapp}?text=${waText}`;
+      const barHeight = Math.max(100, Math.round(canvas.height * 0.115));
+      const barGrad = ctx.createLinearGradient(0, canvas.height - barHeight - 45, 0, canvas.height);
+      barGrad.addColorStop(0, 'rgba(11, 15, 25, 0)');
+      barGrad.addColorStop(0.35, 'rgba(11, 15, 25, 0.78)');
+      barGrad.addColorStop(1, 'rgba(11, 15, 25, 0.96)');
+      ctx.fillStyle = barGrad;
+      ctx.fillRect(0, canvas.height - barHeight - 45, canvas.width, barHeight + 45);
 
-      el.photoModal.classList.remove('hidden');
+      // Franja de acento inferior con el color de la marca
+      ctx.fillStyle = m.acento || '#a3e635';
+      ctx.fillRect(0, canvas.height - 7, canvas.width, 7);
+
+      // Textos profesionales
+      const padX = Math.round(canvas.width * 0.05);
+      const baseFontSize = Math.max(22, Math.round(canvas.width * 0.034));
+
+      // Nombre y marca
+      ctx.font = `bold ${Math.round(baseFontSize * 1.3)}px 'Space Grotesk', system-ui, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'left';
+      ctx.fillText(m.nombre, padX, canvas.height - Math.round(barHeight * 0.55));
+
+      // Precio en acento
+      ctx.font = `bold ${Math.round(baseFontSize * 1.05)}px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = m.acento || '#a3e635';
+      ctx.fillText(formatCOP(m.precio), padX, canvas.height - Math.round(barHeight * 0.2));
+
+      // Sello derecho
+      ctx.font = `700 ${Math.round(baseFontSize * 0.85)}px 'Space Grotesk', system-ui, sans-serif`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.textAlign = 'right';
+      ctx.fillText('MotosAR Colombia', canvas.width - padX, canvas.height - Math.round(barHeight * 0.55));
+
+      const dateStr = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+      ctx.font = `500 ${Math.round(baseFontSize * 0.7)}px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.8)';
+      ctx.fillText(`WebAR 1:1 · ${dateStr}`, canvas.width - padX, canvas.height - Math.round(barHeight * 0.2));
+
+      // 4. Exportar a Blob y URL
+      canvas.toBlob(blob => {
+        if (!blob) {
+          fallbackExport(canvas, m);
+          return;
+        }
+
+        if (state.lastPhotoUrl) URL.revokeObjectURL(state.lastPhotoUrl);
+        state.lastPhotoBlob = blob;
+        const photoUrl = URL.createObjectURL(blob);
+        state.lastPhotoUrl = photoUrl;
+
+        el.photoPreviewImg.src = photoUrl;
+        el.photoDownloadBtn.href = photoUrl;
+        el.photoDownloadBtn.download = `MotosAR-${m.id}.png`;
+        el.photoMotoBadge.textContent = m.nombre;
+
+        const waText = encodeURIComponent(
+          `¡Hola! Probé la *${m.nombre}* en mi espacio en Realidad Aumentada (MotosAR) y quiero cotizarla. Precio: ${formatCOP(m.precio)}`
+        );
+        el.photoWaBtn.href = `https://wa.me/${CONFIG.whatsapp}?text=${waText}`;
+
+        el.photoModal.classList.remove('hidden');
+        resetShutterButton();
+      }, 'image/png');
     };
     motoImg.src = dataUrl;
-  } catch (e) {
-    console.error('Error componiendo foto:', e);
-    const finalPhoto = canvas.toDataURL('image/png');
-    el.photoPreviewImg.src = finalPhoto;
-    el.photoDownloadBtn.href = finalPhoto;
-    el.photoModal.classList.remove('hidden');
+  } catch (err) {
+    console.error('Error procesando foto:', err);
+    fallbackExport(canvas, MOTOS[state.motoIdx]);
   }
+}
+
+function fallbackExport(canvas, m) {
+  const finalPhoto = canvas.toDataURL('image/png');
+  el.photoPreviewImg.src = finalPhoto;
+  el.photoDownloadBtn.href = finalPhoto;
+  el.photoDownloadBtn.download = `MotosAR-${m.id}.png`;
+  el.photoMotoBadge.textContent = m.nombre;
+  el.photoModal.classList.remove('hidden');
+  resetShutterButton();
+}
+
+function resetShutterButton() {
+  state.isCapturing = false;
+  if (el.arCamCapture) el.arCamCapture.classList.remove('capturing');
+  if (el.arShutterSpinner) el.arShutterSpinner.classList.add('hidden');
+  if (el.arShutterInner) el.arShutterInner.style.opacity = '1';
+  if (el.arShutterLabel) el.arShutterLabel.textContent = 'FOTO';
+}
+
+async function shareARPhoto() {
+  const m = MOTOS[state.motoIdx];
+
+  // Intento 1: Web Share API nativo con archivo de imagen (iOS Safari y Android)
+  if (state.lastPhotoBlob && navigator.canShare) {
+    try {
+      const file = new File([state.lastPhotoBlob], `motosar-${m.id}.png`, { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `${m.nombre} — MotosAR`,
+          text: `¡Mira cómo se ve la ${m.nombre} en mi casa en Realidad Aumentada! Precio: ${formatCOP(m.precio)}. Cotízala en: ${window.location.origin}${window.location.pathname}`,
+          files: [file],
+        });
+        return;
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.warn('Web Share no disponible para archivos:', err);
+      } else {
+        return; // Usuario canceló el modal nativo
+      }
+    }
+  }
+
+  // Intento 2: Compartir texto/enlace si no soporta archivos
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `${m.nombre} — MotosAR`,
+        text: `¡Mira cómo se ve la ${m.nombre} en mi casa en Realidad Aumentada! Cotízala en: ${window.location.origin}${window.location.pathname}`,
+        url: window.location.href,
+      });
+      return;
+    } catch (_) {}
+  }
+
+  // Intento 3: Abrir WhatsApp con cotización
+  const waText = encodeURIComponent(
+    `¡Hola! Probé la *${m.nombre}* en mi espacio en Realidad Aumentada (MotosAR) y quiero cotizarla. Precio: ${formatCOP(m.precio)}`
+  );
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${waText}`, '_blank');
 }
 
 /* ══════════════════════════════════════════════
@@ -861,7 +1117,10 @@ function initEvents() {
 
   /* Controles de Cámara AR Universal */
   el.arCamClose.addEventListener('click', stopCameraAR);
-  el.arCamCapture.addEventListener('click', captureARPhoto);
+  el.arCamCapture.addEventListener('click', triggerPhotoCapture);
+  if (el.arCamTimerBtn) {
+    el.arCamTimerBtn.addEventListener('click', toggleCameraTimer);
+  }
   el.arCamPrev.addEventListener('click', () => {
     loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
   });
@@ -900,9 +1159,12 @@ function initEvents() {
     });
   });
 
-  /* Modal de Foto */
+  /* Modal / Sheet de Foto Capturada */
   el.photoModalClose.addEventListener('click', () => el.photoModal.classList.add('hidden'));
   el.photoRetakeBtn.addEventListener('click', () => el.photoModal.classList.add('hidden'));
+  if (el.photoNativeShareBtn) {
+    el.photoNativeShareBtn.addEventListener('click', shareARPhoto);
+  }
 
   /* Flechas de navegación táctil en catálogo */
   el.navPrev.addEventListener('click', () => {

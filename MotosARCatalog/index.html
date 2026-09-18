@@ -293,6 +293,11 @@
       </div>
     </div>
 
+    <!-- Contador regresivo animado para fotos (3... 2... 1...) -->
+    <div id="cameraCountdownOverlay" class="camera-countdown-overlay hidden">
+      <span id="cameraCountdownNumber" class="camera-countdown-number">3</span>
+    </div>
+
     <!-- UI superpuesta sobre la cámara -->
     <div class="ar-camera-ui">
       <!-- Barra superior de la cámara -->
@@ -309,6 +314,15 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:8px;">
+          <!-- Botón temporizador de foto (0s / 3s) -->
+          <button id="arCamTimerBtn" class="ar-cam-btn-icon" aria-label="Temporizador de foto" title="Temporizador de foto (0s / 3s)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+              <circle cx="12" cy="12" r="9"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span id="arCamTimerBadge" class="ar-cam-timer-badge">0s</span>
+          </button>
+
           <!-- Botón fijar / anclar moto en este punto del suelo -->
           <button id="arCamAnchorBtn" class="ar-cam-btn-pill" aria-label="Fijar moto aquí" title="Fijar moto en este punto del piso">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -365,9 +379,10 @@
           <!-- Botón Obturador Foto (Cámara) -->
           <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
             <button id="arCamCapture" class="ar-shutter-btn" aria-label="Tomar foto con la moto">
-              <span class="ar-shutter-inner"></span>
+              <span class="ar-shutter-inner" id="arShutterInner"></span>
+              <span class="ar-shutter-spinner hidden" id="arShutterSpinner"></span>
             </button>
-            <span style="font-family:var(--font-mono); font-size:9px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.8); letter-spacing:0.05em;">FOTO</span>
+            <span id="arShutterLabel" style="font-family:var(--font-mono); font-size:9px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.8); letter-spacing:0.05em;">FOTO</span>
           </div>
 
           <!-- Botón siguiente moto -->
@@ -382,40 +397,62 @@
   </div>
 
   <!-- ══════════════════════════════════════════
-       MODAL DE FOTO CAPTURADA
-  ══════════════════════════════════════════ -->
-  <div id="photoModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="photoModalTitle">
-    <div class="modal-box" style="text-align:center;">
-      <div class="modal-header">
-        <h2 id="photoModalTitle" class="modal-title">¡Foto con tu moto!</h2>
-        <button id="photoModalClose" class="modal-close-btn" aria-label="Cerrar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
+       VISTA PREVIA DE FOTO CAPTURADA (EXPERIENCIA FOTOGRÁFICA NATIVA)
+  ══════════════════════════════════════════════ -->
+  <div id="photoModal" class="photo-preview-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="photoModalTitle">
+    <!-- Barra superior de navegación -->
+    <div class="photo-sheet-topbar">
+      <button id="photoModalClose" class="photo-top-btn" aria-label="Volver a la cámara">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span>Volver</span>
+      </button>
+
+      <div class="photo-badge-pill">
+        <span id="photoMotoBadge">—</span>
+        <span class="photo-badge-dot"></span>
       </div>
 
-      <div style="border-radius:var(--r); overflow:hidden; border:1px solid var(--border); margin-bottom:14px; background:#000;">
-        <img id="photoPreviewImg" src="" alt="Foto en Realidad Aumentada" style="width:100%; height:auto; display:block;" />
-      </div>
+      <!-- Botón compartir nativo (AirDrop / WhatsApp / Guardar Imagen) -->
+      <button id="photoNativeShareBtn" class="photo-top-btn photo-top-btn-accent" aria-label="Compartir foto" title="Compartir foto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/>
+        </svg>
+        <span>Compartir</span>
+      </button>
+    </div>
 
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <a id="photoDownloadBtn" href="#" download="moto-en-mi-casa.png" class="btn-primary" style="text-decoration:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+    <!-- Contenedor central de la foto capturada -->
+    <div class="photo-frame-wrap">
+      <img id="photoPreviewImg" src="" alt="Foto en Realidad Aumentada" class="photo-preview-img" />
+    </div>
+
+    <!-- Barra de acciones inferiores -->
+    <div class="photo-sheet-actions">
+      <!-- Botón principal: Cotizar con foto por WhatsApp -->
+      <a id="photoWaBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-photo-wa">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        <span>Cotizar por WhatsApp</span>
+      </a>
+
+      <!-- Botones secundarios: Descargar y Tomar Otra -->
+      <div class="photo-actions-grid">
+        <a id="photoDownloadBtn" href="#" download="moto-en-mi-casa.png" class="btn-photo-sub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
           </svg>
-          Guardar Foto en mi Teléfono
+          <span>Guardar Foto</span>
         </a>
 
-        <a id="photoWaBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-panel-wa" style="text-decoration:none;">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        <button id="photoRetakeBtn" class="btn-photo-sub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316Z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/>
           </svg>
-          Cotizar esta Moto por WhatsApp
-        </a>
-
-        <button id="photoRetakeBtn" class="btn-secondary">
-          Tomar otra foto
+          <span>Tomar Otra</span>
         </button>
       </div>
     </div>
