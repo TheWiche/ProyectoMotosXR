@@ -89,7 +89,7 @@ Edita `app.js`, sección `CONFIG`:
 
 ```javascript
 const CONFIG = {
-  whatsapp: '573001234567',  // ← Tu número real
+  whatsapp: '573145813171',  // ← Tu número real
   siteName: 'MotosAR Colombia',
   autoArPrompt: true,
 };

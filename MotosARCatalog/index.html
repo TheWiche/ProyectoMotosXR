@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0b0f19" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Catálogo de motos con Realidad Aumentada. Mira la moto en tu espacio antes de comprar. Colombia." />
   <meta property="og:title" content="MotosAR — Catálogo en Realidad Aumentada" />
   <meta property="og:description" content="Visualiza motos en tu espacio real con AR. Sin instalar apps." />
@@ -14,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- model-viewer (MUST load before body content) -->
+  <!-- model-viewer (Google WebAR engine) -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
 
   <!-- QRCode.js -->
@@ -26,17 +28,29 @@
 <body>
 
   <!-- ══════════════════════════════════════════
-       HEADER — Logo + Selector de motos
+       HEADER — Logo + Selector de motos + Modo 360
   ══════════════════════════════════════════ -->
   <header id="header">
-    <div class="logo">
-      <span class="logo-motos">Motos</span><span class="logo-ar">AR</span>
-      <span class="logo-badge">Colombia</span>
+    <div class="logo-group">
+      <div class="logo">
+        <span class="logo-motos">Motos</span><span class="logo-ar">AR</span>
+        <span class="logo-badge">CO</span>
+      </div>
+      <a href="../index.html" class="header-link-btn" title="Ir al comparador 360°">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 21h5v-5"/>
+        </svg>
+        360°
+      </a>
     </div>
+
     <nav id="selector" aria-label="Selector de motocicleta"></nav>
   </header>
 
-  <!-- Barra de acento cromático por moto -->
+  <!-- Barra de acento cromático dinámico -->
   <div id="accentBar"></div>
 
   <!-- ══════════════════════════════════════════
@@ -46,6 +60,24 @@
 
     <!-- ── Área del visor 3D ────────────────── -->
     <section id="viewerArea">
+
+      <!-- Flechas táctiles para cambiar de moto en móvil -->
+      <button id="navPrev" class="nav-arrow nav-prev" aria-label="Moto anterior" title="Anterior">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+
+      <button id="navNext" class="nav-arrow nav-next" aria-label="Siguiente moto" title="Siguiente">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+
+      <!-- Tip visual interactivo para móvil -->
+      <div id="viewerTip" class="viewer-tip">
+        <span>Arriba/abajo/lados para girar &middot; 2 dedos para zoom</span>
+      </div>
 
       <!-- Loading overlay -->
       <div id="loadOverlay" class="load-overlay">
@@ -82,31 +114,26 @@
         ar
         ar-modes="webxr scene-viewer quick-look"
         ar-scale="fixed"
+        ar-placement="floor"
         camera-controls
         touch-action="none"
         auto-rotate
-        auto-rotate-delay="3500"
-        rotation-per-second="18deg"
+        auto-rotate-delay="3000"
+        rotation-per-second="16deg"
         shadow-intensity="1"
+        shadow-softness="0.6"
         environment-image="neutral"
         exposure="1.15"
         min-field-of-view="10deg"
         max-field-of-view="80deg"
         reveal="auto"
+        loading="eager"
       >
-        <!-- Botón AR nativo dentro del visor (solo aparece en dispositivos compatibles) -->
-        <button slot="ar-button" id="mvArSlotBtn" class="mv-ar-slot-btn" title="Ver en AR">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316Z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/>
-          </svg>
-          AR
-        </button>
       </model-viewer>
 
     </section><!-- /#viewerArea -->
 
-    <!-- ── Panel inferior / lateral de ficha ── -->
+    <!-- ── Panel inferior / lateral de ficha (Bottom Sheet) ── -->
     <aside id="fichaPanel" class="ficha-panel">
 
       <!-- Handle de arrastre (mobile) -->
@@ -114,8 +141,8 @@
         <span class="ficha-handle-bar"></span>
       </button>
 
-      <!-- Bloque compacto: nombre + precio (siempre visible) -->
-      <div class="ficha-compact">
+      <!-- Bloque compacto: nombre + precio (siempre visible en la base) -->
+      <div id="fichaCompact" class="ficha-compact">
         <div class="ficha-name-block">
           <span id="motoMarca" class="ficha-marca">—</span>
           <h1 id="motoNombre" class="ficha-nombre">—</h1>
@@ -131,9 +158,25 @@
         <p id="motoDesc" class="ficha-desc">—</p>
         <div id="motoTags" class="ficha-tags"></div>
         <div id="motoSpecs" class="ficha-specs"></div>
+
         <div class="ficha-actions">
+          <button id="panelArBtn" class="btn-panel-ar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316Z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/>
+            </svg>
+            Ver en mi espacio (AR 1:1)
+          </button>
+
+          <a id="panelWaBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-panel-wa">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Cotizar por WhatsApp
+          </a>
+
           <button id="qrBtn" class="btn-secondary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
               <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
               <rect x="3" y="14" width="7" height="7" rx="1"/>
               <path d="M14 14h3v3M20 14v.01M14 20h6M20 17v3"/>
@@ -151,7 +194,7 @@
        BOTONES FLOTANTES
   ══════════════════════════════════════════ -->
 
-  <!-- AR flotante principal (centrado, pulsante) -->
+  <!-- AR flotante principal (flota sobre el visor 3D en móvil) -->
   <button id="arFloatBtn" class="ar-float-btn" aria-label="Ver moto en Realidad Aumentada">
     <span class="ar-float-ring" aria-hidden="true"></span>
     <svg class="ar-float-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -161,7 +204,7 @@
     <span class="ar-float-text">Ver en mi espacio (AR)</span>
   </button>
 
-  <!-- WhatsApp flotante (derecha inferior) -->
+  <!-- WhatsApp flotante (derecha) -->
   <a id="waBtn" href="#" target="_blank" rel="noopener noreferrer" class="wa-float-btn" aria-label="Cotizar por WhatsApp">
     <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -225,4 +268,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-

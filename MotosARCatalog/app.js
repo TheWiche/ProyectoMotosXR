@@ -1,36 +1,27 @@
 /**
  * app.js — MotosAR Catalog
  * WebAR SPA para catálogo de motocicletas en Colombia
- *
- * Características:
- *  - Routing por URL params (?moto=id&ar=true)
- *  - Visor 3D con model-viewer y AR nativo
- *  - Panel ficha técnica expandible
- *  - Generador de QR con qrcode.js
- *  - Botón de WhatsApp dinámico por moto
- *  - Soporte teclado (←→ para navegar)
+ * Optimizado para dispositivos móviles, tablets y escritorio.
  */
 
 'use strict';
 
 /* ══════════════════════════════════════════════
-   CONFIGURACIÓN  —  EDITAR SEGÚN EL NEGOCIO
+   CONFIGURACIÓN
 ══════════════════════════════════════════════ */
 const CONFIG = {
-  /** Número WhatsApp sin +, ni espacios: código país + número */
-  whatsapp: '573001234567',
+  /** Número WhatsApp para cotizaciones (código país + número) */
+  whatsapp: '573145813171',
 
   /** Nombre del sitio en el QR sticker */
   siteName: 'MotosAR Colombia',
 
-  /** Si true, intenta auto-activar AR cuando ?ar=true en URL */
+  /** Si true, muestra prompt para activar AR al entrar con ?ar=true */
   autoArPrompt: true,
 };
 
 /* ══════════════════════════════════════════════
-   CATÁLOGO DE MOTOS
-   glb:    ruta relativa desde MotosARCatalog/
-   poster: imagen mientras carga el GLB
+   CATÁLOGO DE MOTOS (5 modelos)
 ══════════════════════════════════════════════ */
 const MOTOS = [
   {
@@ -48,7 +39,7 @@ const MOTOS = [
     financiado: 'Desde $112.000/mes',
     glb:        '../Akt%20Nkd/nkd.glb',
     poster:     '../Akt%20Nkd/3_dark.png',
-    acento:     '#a3e635',   /* lime-400  */
+    acento:     '#a3e635',   /* lime-400 */
     tags:       ['Ciudad', 'Café Racer', 'Sport'],
     descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. Suspensión delantera telescópica y freno de disco para un manejo dinámico y seguro en ciudad.',
   },
@@ -88,7 +79,7 @@ const MOTOS = [
     poster:     '../Hero%20eco%20deluxe/3_dark.png',
     acento:     '#38bdf8',   /* sky-400 */
     tags:       ['Trabajo', 'Ahorro', 'Ciudad'],
-    descripcion: 'La moto de trabajo más vendida en Colombia. Consumo de combustible excepcional (60+ km/L) y costo de mantenimiento mínimo. Confiable, día a día.',
+    descripcion: 'La moto de trabajo más vendida en Colombia. Consumo de combustible excepcional (60+ km/L) y costo de mantenimiento mínimo. Confiable día a día.',
   },
   {
     id:         'pulsar-ns200',
@@ -153,6 +144,9 @@ function bindEls() {
     accentBar:    document.getElementById('accentBar'),
     loadOverlay:  document.getElementById('loadOverlay'),
     loadBar:      document.getElementById('loadBar'),
+    viewerTip:    document.getElementById('viewerTip'),
+    navPrev:      document.getElementById('navPrev'),
+    navNext:      document.getElementById('navNext'),
     arPrompt:     document.getElementById('arPrompt'),
     arPromptMoto: document.getElementById('arPromptMoto'),
     arPromptBtn:  document.getElementById('arPromptBtn'),
@@ -166,7 +160,10 @@ function bindEls() {
     motoSpecs:    document.getElementById('motoSpecs'),
     fichaPanel:   document.getElementById('fichaPanel'),
     fichaToggle:  document.getElementById('fichaToggle'),
+    fichaCompact: document.getElementById('fichaCompact'),
     fichaExpanded:document.getElementById('fichaExpanded'),
+    panelArBtn:   document.getElementById('panelArBtn'),
+    panelWaBtn:   document.getElementById('panelWaBtn'),
     arFloatBtn:   document.getElementById('arFloatBtn'),
     waBtn:        document.getElementById('waBtn'),
     qrBtn:        document.getElementById('qrBtn'),
@@ -205,7 +202,7 @@ function formatCOP(n) {
 }
 
 function motoBaseURL() {
-  /* URL canónica para el QR: origin + ruta de la carpeta del catálogo */
+  /* URL absoluta canónica de esta vista */
   const path = window.location.pathname.replace(/\/?[^/]*$/, '/');
   return window.location.origin + path;
 }
@@ -214,28 +211,29 @@ function motoBaseURL() {
    CARGAR MOTO
 ══════════════════════════════════════════════ */
 function loadMoto(idx) {
-  state.motoIdx   = idx;
-  state.qrListo   = false;
+  state.motoIdx = idx;
+  state.qrListo = false;
   const m = MOTOS[idx];
 
-  /* Acento visual */
+  /* Color de acento dinámico */
   el.accentBar.style.background = m.acento;
-  document.documentElement.style.setProperty('--cur-accent', m.acento);
+  document.documentElement.style.setProperty('--accent-ar', m.acento);
 
-  /* model-viewer */
+  /* Carga del modelo 3D */
   clearTimeout(state.loadTimer);
   el.loadOverlay.classList.remove('hidden', 'fade-out');
   el.loadBar.style.width = '0%';
 
   el.mv.setAttribute('poster', m.poster);
-  /* Reset src para forzar re-load del evento 'load' */
   el.mv.removeAttribute('src');
-  requestAnimationFrame(() => { el.mv.setAttribute('src', m.glb); });
+  requestAnimationFrame(() => {
+    el.mv.setAttribute('src', m.glb);
+  });
 
-  /* Timeout de seguridad: ocultar overlay si load no dispara en 25s */
+  /* Timeout de seguridad en caso de redes móviles lentas */
   state.loadTimer = setTimeout(() => hideLoadOverlay(), 25000);
 
-  /* Ficha */
+  /* Ficha técnica */
   el.motoMarca.textContent  = m.marca;
   el.motoNombre.textContent = m.nombre;
   el.motoPrecio.textContent = formatCOP(m.precio);
@@ -244,17 +242,23 @@ function loadMoto(idx) {
   el.motoTags.innerHTML     = m.tags.map(t => `<span class="tag">${t}</span>`).join('');
   el.motoSpecs.innerHTML    = buildSpecs(m);
 
-  /* WhatsApp */
+  /* WhatsApp URLs */
   refreshWhatsApp(m);
 
-  /* Selector pills */
+  /* Actualizar y centrar pills del selector en móvil */
   document.querySelectorAll('.moto-pill').forEach((btn, i) => {
-    btn.classList.toggle('active', i === idx);
+    const isActive = (i === idx);
+    btn.classList.toggle('active', isActive);
     btn.style.setProperty('--acento', MOTOS[i].acento);
+    if (isActive) {
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
   });
 
-  /* Cerrar ficha si está expandida */
-  if (state.fichaAbierta) toggleFicha(false);
+  /* Actualizar URL en historial sin recargar */
+  const url = new URL(window.location);
+  url.searchParams.set('moto', m.id);
+  window.history.replaceState({}, '', url);
 }
 
 function buildSpecs(m) {
@@ -287,9 +291,11 @@ function refreshWhatsApp(m) {
   const txt = encodeURIComponent(
     `Hola! Estoy interesado en la *${m.nombre}* que vi en el catálogo AR.\n` +
     `💰 Precio: ${formatCOP(m.precio)}\n\n` +
-    `¿Puedes darme más información? 🏍️`
+    `¿Puedes darme más información sobre disponibilidad y financiación? 🏍️`
   );
-  el.waBtn.href = `https://wa.me/${CONFIG.whatsapp}?text=${txt}`;
+  const waUrl = `https://wa.me/${CONFIG.whatsapp}?text=${txt}`;
+  if (el.waBtn) el.waBtn.href = waUrl;
+  if (el.panelWaBtn) el.panelWaBtn.href = waUrl;
 }
 
 /* ══════════════════════════════════════════════
@@ -310,12 +316,14 @@ function buildSelector() {
 
   el.selector.addEventListener('click', e => {
     const btn = e.target.closest('.moto-pill');
-    if (btn && +btn.dataset.idx !== state.motoIdx) loadMoto(+btn.dataset.idx);
+    if (btn && +btn.dataset.idx !== state.motoIdx) {
+      loadMoto(+btn.dataset.idx);
+    }
   });
 }
 
 /* ══════════════════════════════════════════════
-   ACTIVAR AR
+   ACTIVAR REALIDAD AUMENTADA (AR)
 ══════════════════════════════════════════════ */
 function activateAR() {
   if (el.mv.canActivateAR) {
@@ -327,13 +335,13 @@ function activateAR() {
 
 function showARToast() {
   const m = MOTOS[state.motoIdx];
-  el.arToastMsg.textContent = `Usa Chrome en Android o Safari en iPhone para ver la ${m.marca} en AR`;
+  el.arToastMsg.textContent = `Abre este enlace desde Google Chrome en Android o Safari en iPhone para ver la ${m.marca} en tu espacio.`;
   el.arToast.classList.remove('hidden');
-  setTimeout(() => el.arToast.classList.add('hidden'), 4500);
+  setTimeout(() => el.arToast.classList.add('hidden'), 5000);
 }
 
 /* ══════════════════════════════════════════════
-   AR PROMPT (para URLs con ?ar=true)
+   AR PROMPT (para visitas por QR con ?ar=true)
 ══════════════════════════════════════════════ */
 function initARPrompt() {
   if (!state.arPrompt) {
@@ -346,8 +354,7 @@ function initARPrompt() {
 
   el.arPromptBtn.addEventListener('click', () => {
     el.arPrompt.classList.add('hidden');
-    /* Pequeño delay para que el modelo termine de cargar */
-    setTimeout(activateAR, 600);
+    setTimeout(activateAR, 500);
   }, { once: true });
 
   el.arPromptSkip.addEventListener('click', () => {
@@ -356,13 +363,14 @@ function initARPrompt() {
 }
 
 /* ══════════════════════════════════════════════
-   FICHA PANEL TOGGLE
+   FICHA PANEL TOGGLE (Bottom Sheet en Mobile)
 ══════════════════════════════════════════════ */
 function toggleFicha(force) {
-  const open = force !== undefined ? force : !state.fichaAbierta;
+  const open = (force !== undefined) ? force : !state.fichaAbierta;
   state.fichaAbierta = open;
   el.fichaPanel.classList.toggle('open', open);
   el.fichaExpanded.setAttribute('aria-hidden', String(!open));
+  document.body.classList.toggle('ficha-is-open', open);
 }
 
 /* ══════════════════════════════════════════════
@@ -376,13 +384,11 @@ function openQRModal() {
   el.stickerPrecio.textContent = formatCOP(m.precio);
   el.qrUrlDisplay.textContent  = url;
 
-  /* Limpiar QR anterior */
   el.qrContainer.innerHTML = '';
   state.qrListo = false;
 
   el.qrModal.classList.remove('hidden');
 
-  /* Generar QR en el próximo frame para que el modal ya esté visible */
   requestAnimationFrame(() => {
     try {
       new QRCode(el.qrContainer, {
@@ -396,7 +402,7 @@ function openQRModal() {
       state.qrListo = true;
     } catch (e) {
       el.qrContainer.innerHTML =
-        '<p style="color:#ef4444;font-size:12px;padding:12px;">Error generando QR: ' + e.message + '</p>';
+        '<p style="color:#ef4444;font-size:12px;padding:12px;">Error generando QR</p>';
     }
   });
 }
@@ -426,39 +432,55 @@ function initModelViewerEvents() {
     clearTimeout(state.loadTimer);
     el.loadOverlay.innerHTML =
       `<p style="color:#f87171;font-size:12px;font-family:var(--font-mono);padding:16px;text-align:center;">
-        Error cargando modelo 3D.<br/>Verifica que el servidor esté activo.
+        No se pudo cargar el modelo 3D.<br/>Verifica la conexión.
       </p>`;
   });
 
   el.mv.addEventListener('ar-status', e => {
     if (e.detail.status === 'failed') showARToast();
   });
+
+  /* Desvanecer tip al primer contacto */
+  el.mv.addEventListener('camera-change', () => {
+    if (el.viewerTip) el.viewerTip.style.opacity = '0';
+  }, { once: true });
 }
 
 /* ══════════════════════════════════════════════
    EVENT LISTENERS
 ══════════════════════════════════════════════ */
 function initEvents() {
-  /* AR float button */
+  /* Botón AR flotante */
   el.arFloatBtn.addEventListener('click', activateAR);
+
+  /* Botón AR dentro de la ficha técnica */
+  if (el.panelArBtn) {
+    el.panelArBtn.addEventListener('click', activateAR);
+  }
+
+  /* Flechas de navegación táctil */
+  el.navPrev.addEventListener('click', () => {
+    loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
+  });
+  el.navNext.addEventListener('click', () => {
+    loadMoto((state.motoIdx + 1) % MOTOS.length);
+  });
 
   /* Ficha toggle */
   el.fichaToggle.addEventListener('click', () => toggleFicha());
-
-  /* Expand ficha on click on compact block too */
-  el.fichaPanel.addEventListener('click', e => {
-    if (!state.fichaAbierta && !e.target.closest('#fichaExpanded') && !e.target.closest('#fichaToggle')) {
-      toggleFicha(true);
-    }
+  el.fichaCompact.addEventListener('click', () => {
+    if (window.innerWidth < 1024) toggleFicha();
   });
 
   /* QR modal */
   el.qrBtn.addEventListener('click', openQRModal);
   el.qrModalClose.addEventListener('click', closeQRModal);
-  el.qrModal.addEventListener('click', e => { if (e.target === el.qrModal) closeQRModal(); });
+  el.qrModal.addEventListener('click', e => {
+    if (e.target === el.qrModal) closeQRModal();
+  });
   el.printBtn.addEventListener('click', printSticker);
 
-  /* Keyboard navigation */
+  /* Navegación por teclado */
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (!el.qrModal.classList.contains('hidden')) { closeQRModal(); return; }
@@ -467,23 +489,40 @@ function initEvents() {
     if (document.activeElement.tagName === 'INPUT') return;
     if (e.key === 'ArrowRight') loadMoto((state.motoIdx + 1) % MOTOS.length);
     if (e.key === 'ArrowLeft')  loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
-    /* Teclas 1-5: selección rápida */
     const n = parseInt(e.key);
     if (n >= 1 && n <= MOTOS.length) loadMoto(n - 1);
   });
 
-  /* Touch swipe en el header selector para teclado táctil */
+  /* Swipe táctil EXCLUSIVAMENTE en la ficha técnica (no interfiere con el 3D) */
   let touchStartX = 0;
-  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  document.addEventListener('touchend', e => {
-    /* Solo fuera del modal y de la ficha */
-    if (!el.qrModal.classList.contains('hidden')) return;
-    if (e.target.closest('#fichaPanel') || e.target.closest('#selector')) return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) < 60) return;   /* mínimo 60px de swipe */
-    if (dx < 0) loadMoto((state.motoIdx + 1) % MOTOS.length);  /* swipe ← → siguiente */
-    else         loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
+  let touchStartY = 0;
+  el.fichaPanel.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
   }, { passive: true });
+
+  el.fichaPanel.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+
+    /* Si el movimiento fue vertical en el handle, toggle ficha */
+    if (Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx)) {
+      if (dy < -40 && !state.fichaAbierta) toggleFicha(true);
+      else if (dy > 40 && state.fichaAbierta) toggleFicha(false);
+      return;
+    }
+
+    /* Swipe horizontal en la ficha para cambiar de moto */
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) loadMoto((state.motoIdx + 1) % MOTOS.length);
+      else        loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
+    }
+  }, { passive: true });
+
+  /* Ocultar viewerTip automáticamente a los 4s */
+  setTimeout(() => {
+    if (el.viewerTip) el.viewerTip.style.opacity = '0';
+  }, 4500);
 }
 
 /* ══════════════════════════════════════════════
@@ -498,4 +537,3 @@ document.addEventListener('DOMContentLoaded', () => {
   loadMoto(state.motoIdx);
   initARPrompt();
 });
-

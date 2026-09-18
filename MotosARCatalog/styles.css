@@ -1,7 +1,7 @@
 /* ================================================================
    styles.css — MotosAR Catalog
    Dark Mode: #0b0f19 bg, #1e293b cards, lime/emerald accents
-   Mobile-first, optimizado para 4G/3G
+   Mobile-first, 100% optimizado para smartphones y conexiones 4G/3G
    ================================================================ */
 
 /* ── Custom Properties ─────────────────────────────────────────── */
@@ -18,28 +18,43 @@
   --accent-ar:    #a3e635;   /* lime-400  — AR */
   --accent-wa:    #22c55e;   /* green-500 — WhatsApp */
   --accent-on:    #000000;   /* text on accent bg */
-  --font:         'Space Grotesk', system-ui, sans-serif;
+  --font:         'Space Grotesk', system-ui, -apple-system, sans-serif;
   --font-mono:    'JetBrains Mono', monospace;
   --r-sm:         6px;
   --r:            12px;
   --r-lg:         18px;
   --r-pill:       9999px;
-  --header-h:     54px;
+  --header-h:     52px;
+  --safe-t:       env(safe-area-inset-top, 0px);
   --safe-b:       env(safe-area-inset-bottom, 0px);
   --safe-l:       env(safe-area-inset-left, 0px);
   --safe-r:       env(safe-area-inset-right, 0px);
 }
 
 /* ── Reset ─────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; font-size: 16px; }
-button { font-family: inherit; cursor: pointer; }
-a { text-decoration: none; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+html {
+  height: 100%;
+  font-size: 16px;
+}
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+a { text-decoration: none; color: inherit; }
 
-/* ── Body ──────────────────────────────────────────────────────── */
+/* ── Body (Mobile Safe SVH / DVH) ──────────────────────────────── */
 body {
-  height: 100svh;           /* small viewport height — mobile safe */
+  height: 100dvh;
   min-height: 100svh;
+  max-height: 100dvh;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
@@ -47,6 +62,9 @@ body {
   flex-direction: column;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ── Utility ───────────────────────────────────────────────────── */
@@ -56,26 +74,31 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 /* ════════════════════════════════════════════
-   HEADER
+   HEADER (Mobile-optimized with Safe Area)
 ════════════════════════════════════════════ */
 #header {
-  flex: 0 0 var(--header-h);
+  flex: 0 0 calc(var(--header-h) + var(--safe-t));
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 14px;
+  gap: 10px;
+  padding: var(--safe-t) calc(12px + var(--safe-r)) 0 calc(12px + var(--safe-l));
   background: var(--bg-mid);
   border-bottom: 1px solid var(--border);
   z-index: 40;
   overflow: hidden;
 }
 
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .logo {
   display: flex;
   align-items: baseline;
-  gap: 0;
-  flex-shrink: 0;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.03em;
 }
@@ -85,43 +108,71 @@ body {
   font-family: var(--font-mono);
   font-size: 8px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
   border: 1px solid var(--border);
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: var(--r-sm);
-  margin-left: 7px;
+  margin-left: 5px;
   align-self: center;
 }
 
-/* ── Selector pills ─────────────────────────────────────────────── */
+@media (max-width: 360px) {
+  .logo-badge { display: none; }
+}
+
+.header-link-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+.header-link-btn:hover {
+  border-color: var(--accent-ar);
+  color: var(--text);
+}
+
+/* ── Selector pills (Scrollable on Mobile) ───────────────────────── */
 #selector {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  padding: 2px 0;
+  scroll-snap-type: x mandatory;
+  padding: 2px 2px;
 }
 #selector::-webkit-scrollbar { display: none; }
 
 .moto-pill {
   flex-shrink: 0;
+  scroll-snap-align: center;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: var(--r-pill);
   border: 1px solid var(--border);
-  background: transparent;
+  background: rgba(30, 41, 59, 0.4);
   color: var(--text-muted);
-  transition: border-color 0.18s, color 0.18s, background 0.18s;
+  transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.1s;
   line-height: 1;
   gap: 1px;
 }
+.moto-pill:active { transform: scale(0.96); }
 .pill-marca {
   font-family: var(--font-mono);
   font-size: 7.5px;
@@ -131,7 +182,7 @@ body {
   opacity: 0.65;
 }
 .pill-modelo {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -144,7 +195,7 @@ body {
   border-color: var(--acento, var(--accent-ar));
   color: #000;
 }
-.moto-pill.active .pill-marca { opacity: 0.55; }
+.moto-pill.active .pill-marca { opacity: 0.6; }
 
 /* ── Accent bar ─────────────────────────────────────────────────── */
 #accentBar {
@@ -165,6 +216,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  position: relative;
 }
 
 @media (min-width: 1024px) {
@@ -180,7 +232,7 @@ body {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background: var(--bg);
+  background: radial-gradient(circle at 50% 50%, #151d30 0%, #0b0f19 80%);
   min-height: 0;
 }
 
@@ -191,29 +243,67 @@ model-viewer {
   width: 100%;
   height: 100%;
   background: transparent;
-  --poster-color: var(--bg);
+  --poster-color: transparent;
 }
 
-/* Slot AR button (aparece automáticamente solo en dispositivos AR) */
+/* Slot AR button nativo de Google model-viewer */
 .mv-ar-slot-btn {
+  display: none; /* Usamos nuestro botón flotante optimizado */
+}
+
+/* Flechas de navegación táctil para móvil (prev/next) */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: all 0.18s;
+  cursor: pointer;
+}
+.nav-arrow:hover {
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--text);
+  border-color: var(--accent-ar);
+}
+.nav-arrow:active { transform: translateY(-50%) scale(0.92); }
+.nav-prev { left: 10px; }
+.nav-next { right: 10px; }
+
+/* Tip visual para el usuario (rotar / zoom) */
+.viewer-tip {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  background: rgba(163, 230, 53, 0.12);
-  border: 1px solid rgba(163, 230, 53, 0.6);
+  padding: 4px 10px;
   border-radius: var(--r-pill);
-  color: var(--accent-ar);
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  transition: background 0.18s;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--border-lo);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.85;
+  transition: opacity 0.5s;
 }
-.mv-ar-slot-btn:hover { background: rgba(163, 230, 53, 0.22); }
 
 /* ── Loading overlay ────────────────────────────────────────────── */
 .load-overlay {
@@ -232,7 +322,7 @@ model-viewer {
 .load-overlay.hidden   { display: none; }
 
 .load-spinner {
-  width: 38px; height: 38px;
+  width: 36px; height: 36px;
   border: 3px solid var(--border);
   border-top-color: var(--accent-ar);
   border-radius: 50%;
@@ -241,7 +331,7 @@ model-viewer {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .load-track {
-  width: 140px; height: 3px;
+  width: 130px; height: 3px;
   background: var(--border);
   border-radius: var(--r-pill);
   overflow: hidden;
@@ -270,24 +360,25 @@ model-viewer {
   justify-content: center;
   z-index: 25;
   padding: 20px;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .ar-prompt.hidden { display: none; }
 
-.ar-prompt-inner { text-align: center; max-width: 300px; }
+.ar-prompt-inner { text-align: center; max-width: 320px; width: 100%; }
 
 .ar-prompt-icon {
-  width: 68px; height: 68px;
-  margin: 0 auto 18px;
-  background: rgba(163, 230, 53, 0.08);
-  border: 1px solid rgba(163, 230, 53, 0.25);
+  width: 64px; height: 64px;
+  margin: 0 auto 16px;
+  background: rgba(163, 230, 53, 0.1);
+  border: 1px solid rgba(163, 230, 53, 0.3);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--accent-ar);
 }
-.ar-prompt-icon svg { width: 34px; height: 34px; }
+.ar-prompt-icon svg { width: 32px; height: 32px; }
 
 .ar-prompt-title {
   font-size: 20px; font-weight: 700;
@@ -296,25 +387,26 @@ model-viewer {
   margin-bottom: 6px;
 }
 .ar-prompt-sub {
-  font-size: 13px; font-weight: 600;
+  font-size: 14px; font-weight: 600;
   color: var(--accent-ar);
   margin-bottom: 10px;
 }
 .ar-prompt-hint {
   font-size: 12px; color: var(--text-muted);
-  line-height: 1.5; margin-bottom: 24px;
+  line-height: 1.5; margin-bottom: 22px;
 }
 .ar-prompt-cta {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 13px 20px;
+  width: 100%; padding: 14px 20px;
   background: var(--accent-ar);
   color: #000; font-size: 14px; font-weight: 700;
   border: none; border-radius: var(--r-pill);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 18px rgba(163, 230, 53, 0.35);
   transition: opacity 0.15s, transform 0.1s;
 }
-.ar-prompt-cta:active { transform: scale(0.97); opacity: 0.88; }
-.ar-prompt-cta svg { width: 19px; height: 19px; flex-shrink: 0; }
+.ar-prompt-cta:active { transform: scale(0.97); opacity: 0.9; }
+.ar-prompt-cta svg { width: 18px; height: 18px; flex-shrink: 0; }
 .ar-prompt-skip {
   font-size: 12px; color: var(--text-muted);
   background: none; border: none;
@@ -322,8 +414,7 @@ model-viewer {
 }
 
 /* ════════════════════════════════════════════
-   FICHA PANEL (bottom-sheet en mobile,
-   sidebar en desktop)
+   FICHA PANEL (Bottom-sheet en Mobile)
 ════════════════════════════════════════════ */
 .ficha-panel {
   background: var(--card);
@@ -331,47 +422,60 @@ model-viewer {
   position: relative;
   z-index: 30;
   overflow: hidden;
-  transition: max-height 0.38s cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 90px;   /* compact height */
+  transition: max-height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 82px;   /* Compact height en mobile */
   flex-shrink: 0;
+  padding-bottom: var(--safe-b);
 }
-.ficha-panel.open { max-height: 55vh; overflow-y: auto; }
+.ficha-panel.open {
+  max-height: 72svh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.6);
+}
 
 @media (min-width: 1024px) {
   .ficha-panel {
-    flex: 0 0 360px;
+    flex: 0 0 380px;
     max-height: none !important;
     border-top: none;
     border-left: 1px solid var(--border);
     overflow-y: auto;
+    padding-bottom: 0;
   }
 }
 
-/* Handle de arrastre */
+/* Handle de arrastre / tap */
 .ficha-handle {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding: 10px 0 4px;
+  padding: 8px 0 4px;
   background: none;
   border: none;
   cursor: pointer;
-  text-align: center;
 }
 .ficha-handle-bar {
   display: inline-block;
-  width: 36px; height: 3px;
+  width: 38px; height: 4px;
   background: var(--border);
   border-radius: var(--r-pill);
+  transition: background 0.2s;
+}
+.ficha-handle:hover .ficha-handle-bar {
+  background: var(--text-muted);
 }
 @media (min-width: 1024px) { .ficha-handle { display: none; } }
 
-/* Compact block */
+/* Compact block (siempre visible en la base) */
 .ficha-compact {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px 12px;
+  padding: 2px 16px 10px;
   gap: 12px;
+  cursor: pointer;
 }
 @media (min-width: 1024px) {
   .ficha-compact {
@@ -379,6 +483,7 @@ model-viewer {
     align-items: flex-start;
     padding: 24px 20px 16px;
     gap: 10px;
+    cursor: default;
   }
 }
 
@@ -392,7 +497,7 @@ model-viewer {
   margin-bottom: 2px;
 }
 .ficha-nombre {
-  font-size: 17px; font-weight: 700;
+  font-size: 16px; font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -405,14 +510,14 @@ model-viewer {
 @media (min-width: 1024px) { .ficha-price-block { text-align: left; } }
 .ficha-precio {
   font-family: var(--font-mono);
-  font-size: 15px; font-weight: 700;
+  font-size: 14.5px; font-weight: 700;
   color: var(--accent-ar);
 }
 .ficha-financ { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
 /* Expanded block */
 .ficha-expanded {
-  padding: 0 16px 20px;
+  padding: 4px 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -454,11 +559,36 @@ model-viewer {
   color: var(--text);
 }
 
-.ficha-actions { display: flex; flex-direction: column; gap: 8px; }
+.ficha-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn-panel-ar {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 13px;
+  background: var(--accent-ar);
+  color: #000;
+  font-size: 14px; font-weight: 700;
+  border-radius: var(--r);
+  transition: opacity 0.15s;
+}
+.btn-panel-ar:active { opacity: 0.88; }
+
+.btn-panel-wa {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px;
+  background: var(--accent-wa);
+  color: #fff;
+  font-size: 13px; font-weight: 600;
+  border-radius: var(--r);
+}
 
 .btn-secondary {
-  display: flex; align-items: center; gap: 7px;
-  width: 100%; padding: 10px 14px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; padding: 11px 14px;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--r);
@@ -470,74 +600,119 @@ model-viewer {
 
 /* ════════════════════════════════════════════
    BOTONES FLOTANTES
+   Mobile: flotan SOBRE el visor 3D, por encima de la ficha compacta
 ════════════════════════════════════════════ */
 
 /* ── AR flotante ────────────────────────────────────────────────── */
 .ar-float-btn {
-  position: fixed;
-  bottom: calc(14px + var(--safe-b));
+  position: absolute;
+  bottom: calc(92px + var(--safe-b));
   left: 50%;
   transform: translateX(-50%);
-  z-index: 50;
+  z-index: 25;
 
-  display: flex; align-items: center; gap: 9px;
-  padding: 13px 22px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 20px;
   background: var(--accent-ar);
   border: none;
   border-radius: var(--r-pill);
   color: #000;
-  font-size: 14px; font-weight: 700;
+  font-size: 13.5px; font-weight: 700;
   white-space: nowrap;
 
   /* Glow pulse */
   animation: ar-glow 2.8s ease-in-out infinite;
-  transition: transform 0.1s, opacity 0.1s;
+  transition: transform 0.2s, opacity 0.2s;
+  box-shadow: 0 4px 20px rgba(163,230,53,0.3);
 }
 .ar-float-btn:active { transform: translateX(-50%) scale(0.96); opacity: 0.9; }
 
 .ar-float-ring {
   position: absolute;
-  inset: -5px;
+  inset: -4px;
   border-radius: var(--r-pill);
-  border: 2px solid rgba(163, 230, 53, 0.3);
+  border: 2px solid rgba(163, 230, 53, 0.35);
   animation: ar-ring 2.8s ease-in-out infinite;
   pointer-events: none;
 }
 
-.ar-float-icon { width: 19px; height: 19px; flex-shrink: 0; }
+.ar-float-icon { width: 18px; height: 18px; flex-shrink: 0; }
 .ar-float-text { white-space: nowrap; }
 
 @keyframes ar-glow {
-  0%, 100% { box-shadow: 0 0 0   0 rgba(163,230,53,0.35), 0 4px 20px rgba(163,230,53,0.2); }
-  50%       { box-shadow: 0 0 0 12px rgba(163,230,53,0),   0 4px 20px rgba(163,230,53,0.35); }
+  0%, 100% { box-shadow: 0 0 0   0 rgba(163,230,53,0.35), 0 4px 18px rgba(163,230,53,0.25); }
+  50%       { box-shadow: 0 0 0 10px rgba(163,230,53,0),   0 4px 22px rgba(163,230,53,0.4); }
 }
 @keyframes ar-ring {
   0%, 100% { transform: scale(1); opacity: 0.7; }
-  50%       { transform: scale(1.1); opacity: 0.15; }
+  50%       { transform: scale(1.08); opacity: 0.1; }
 }
 
 /* ── WhatsApp flotante ──────────────────────────────────────────── */
 .wa-float-btn {
-  position: fixed;
-  bottom: calc(14px + var(--safe-b));
+  position: absolute;
+  bottom: calc(92px + var(--safe-b));
   right: calc(14px + var(--safe-r));
-  z-index: 50;
+  z-index: 25;
 
-  display: flex; align-items: center; gap: 7px;
-  padding: 12px 16px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 44px;
+  height: 44px;
   background: var(--accent-wa);
   border-radius: var(--r-pill);
   color: #fff;
   font-size: 13px; font-weight: 600;
 
-  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.35);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
+  transition: transform 0.2s, opacity 0.2s, box-shadow 0.15s;
 }
-.wa-float-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(34,197,94,0.45); }
-.wa-float-btn:active { transform: scale(0.96); }
-@media (max-width: 380px) {
-  .wa-text { display: none; }
-  .wa-float-btn { padding: 12px; }
+.wa-float-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34,197,94,0.5); }
+.wa-float-btn:active { transform: scale(0.94); }
+.wa-text { display: none; }
+
+@media (min-width: 640px) {
+  .wa-float-btn {
+    width: auto;
+    padding: 12px 16px;
+  }
+  .wa-text { display: inline; }
+}
+
+/* Ocultar botones flotantes cuando la ficha técnica está abierta */
+body.ficha-is-open .ar-float-btn,
+body.ficha-is-open .wa-float-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px);
+}
+
+/* ════════════════════════════════════════════
+   DESKTOP OVERRIDE — Ajustes AR/WA buttons
+════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .ar-float-btn {
+    bottom: 24px;
+    left: calc(50% - 190px);
+    transform: translateX(-50%);
+    padding: 13px 24px;
+    font-size: 14px;
+  }
+  .ar-float-btn:active { transform: translateX(-50%) scale(0.97); }
+
+  .wa-float-btn {
+    bottom: 24px;
+    right: 400px;
+    width: auto;
+    padding: 12px 18px;
+  }
+  .wa-text { display: inline; }
+
+  body.ficha-is-open .ar-float-btn,
+  body.ficha-is-open .wa-float-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -545,12 +720,13 @@ model-viewer {
 ════════════════════════════════════════════ */
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,0.8);
   z-index: 60;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   padding: 0;
   animation: fade-in 0.2s ease;
 }
@@ -565,9 +741,9 @@ model-viewer {
   padding: 20px 20px calc(20px + var(--safe-b));
   width: 100%;
   max-width: 420px;
-  max-height: 92svh;
+  max-height: 90svh;
   overflow-y: auto;
-  animation: slide-up 0.28s cubic-bezier(0.4,0,0.2,1);
+  animation: slide-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 @media (min-width: 600px) {
   .modal-box {
@@ -582,19 +758,19 @@ model-viewer {
 
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .modal-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
 .modal-close-btn {
-  width: 30px; height: 30px;
-  background: rgba(255,255,255,0.07);
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.08);
   border: 1px solid var(--border);
   border-radius: 50%;
   color: var(--text-muted);
   display: flex; align-items: center; justify-content: center;
   transition: background 0.15s, color 0.15s;
 }
-.modal-close-btn:hover { background: rgba(255,255,255,0.14); color: var(--text); }
+.modal-close-btn:hover { background: rgba(255,255,255,0.16); color: var(--text); }
 
 /* Sticker preview */
 .print-sticker {
@@ -652,7 +828,7 @@ model-viewer {
 /* ── AR Toast ────────────────────────────────────────────────────── */
 .ar-toast {
   position: fixed;
-  bottom: calc(80px + var(--safe-b));
+  bottom: calc(90px + var(--safe-b));
   left: 50%;
   transform: translateX(-50%);
   z-index: 55;
@@ -665,29 +841,14 @@ model-viewer {
   border-radius: var(--r);
   color: #fbbf24;
   max-width: calc(100vw - 32px);
+  width: max-content;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
   animation: slide-up 0.25s ease;
 }
 .ar-toast.hidden { display: none; }
 .ar-toast svg { flex-shrink: 0; margin-top: 1px; }
 .ar-toast-title { font-size: 13px; font-weight: 600; color: #fbbf24; }
 .ar-toast-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-/* ════════════════════════════════════════════
-   DESKTOP OVERRIDE — Ajustes AR/WA buttons
-════════════════════════════════════════════ */
-@media (min-width: 1024px) {
-  .ar-float-btn {
-    bottom: 32px;
-    left: calc(50% - 180px);
-    transform: translateX(-50%);
-  }
-  .ar-float-btn:active { transform: translateX(-50%) scale(0.97); }
-
-  .wa-float-btn {
-    bottom: 32px;
-    right: 392px;
-  }
-}
 
 /* ════════════════════════════════════════════
    PRINT — Calcomanía 5×5 cm
@@ -722,4 +883,3 @@ model-viewer {
   .sticker-precio  { font-size: 8pt  !important; margin-bottom: 0.5mm !important; }
   .sticker-brand   { font-size: 5.5pt !important; }
 }
-
