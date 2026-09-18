@@ -916,6 +916,35 @@ body.ficha-is-open .wa-float-btn {
   pointer-events: auto;
 }
 
+/* Sombra de suelo simulada para que la moto no flote en la cámara */
+.ar-floor-shadow {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 75%;
+  max-width: 320px;
+  height: 60px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 75%);
+  border-radius: 50%;
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Flash de cámara blanco animado */
+.camera-flash {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.35s ease-out;
+}
+.camera-flash.hidden { display: none !important; }
+.camera-flash.fade { opacity: 0; }
+
 .ar-camera-ui {
   position: absolute;
   inset: 0;

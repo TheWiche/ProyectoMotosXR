@@ -191,10 +191,12 @@ function bindEls() {
     arCameraView:       document.getElementById('arCameraView'),
     arCameraFeed:       document.getElementById('arCameraFeed'),
     arCaptureCanvas:    document.getElementById('arCaptureCanvas'),
+    cameraFlash:        document.getElementById('cameraFlash'),
     cameraMv:           document.getElementById('cameraMv'),
     arCamClose:         document.getElementById('arCamClose'),
     arCamMotoNombre:    document.getElementById('arCamMotoNombre'),
     arCamResetScale:    document.getElementById('arCamResetScale'),
+    arCamRotate180:     document.getElementById('arCamRotate180'),
     arCamPrev:          document.getElementById('arCamPrev'),
     arCamNext:          document.getElementById('arCamNext'),
     arCamCapture:       document.getElementById('arCamCapture'),
@@ -362,17 +364,7 @@ function buildSelector() {
    ACTIVAR REALIDAD AUMENTADA (AR)
 ══════════════════════════════════════════════ */
 function requestAR() {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-  if (isIOS) {
-    // En iOS Safari, Quick Look funciona de forma nativa e impecable sin Play Store
-    if (el.mv.canActivateAR) {
-      el.mv.activateAR();
-      return;
-    }
-  }
-
-  // En Android u otros dispositivos, mostrar el selector para garantizar compatibilidad
+  // En iPhone y Android siempre mostramos el selector para que puedan usar la Cámara AR Universal
   el.arChoiceModal.classList.remove('hidden');
 }
 
@@ -395,7 +387,7 @@ function showARToast(msg) {
 
 /* ══════════════════════════════════════════════
    CÁMARA AR UNIVERSAL (WebAR Passthrough)
-   Funciona en el 100% de los teléfonos con cámara web
+   Funciona en el 100% de iPhones y Androids con cámara web
 ══════════════════════════════════════════════ */
 async function startCameraAR() {
   el.arChoiceModal.classList.add('hidden');
@@ -414,6 +406,10 @@ async function startCameraAR() {
 
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     state.cameraStream = stream;
+
+    // Configurar video para iOS Safari y Android
+    el.arCameraFeed.setAttribute('playsinline', '');
+    el.arCameraFeed.setAttribute('webkit-playsinline', '');
     el.arCameraFeed.srcObject = stream;
     await el.arCameraFeed.play();
 
@@ -421,8 +417,11 @@ async function startCameraAR() {
     el.arCameraView.classList.remove('hidden');
     el.arCamMotoNombre.textContent = m.nombre;
 
-    // Cargar modelo 3D en el visor de cámara transparente
+    // Cargar modelo 3D en el visor de cámara transparente adaptado al piso
     el.cameraMv.setAttribute('src', m.glb);
+    el.cameraMv.cameraTarget = '0m 0.45m 0m';
+    el.cameraMv.cameraOrbit = '0deg 78deg 2.6m';
+    el.cameraMv.fieldOfView = '35deg';
     setCameraScale(1.0);
 
     // Ocultar tip a los 4s
@@ -432,7 +431,7 @@ async function startCameraAR() {
 
   } catch (err) {
     console.warn('Error accediendo a la cámara:', err);
-    alert('Para ver la moto en tu espacio, permite el acceso a la cámara en el navegador.');
+    alert('Para ver la moto en tu espacio real, permite el acceso a la cámara en el navegador.');
   }
 }
 
@@ -460,6 +459,20 @@ function setCameraScale(scale) {
    CAPTURAR FOTO CON LA MOTO
 ══════════════════════════════════════════════ */
 async function captureARPhoto() {
+  // Efecto Flash fotográfico
+  if (el.cameraFlash) {
+    el.cameraFlash.classList.remove('hidden', 'fade');
+    setTimeout(() => {
+      el.cameraFlash.classList.add('fade');
+      setTimeout(() => el.cameraFlash.classList.add('hidden'), 350);
+    }, 40);
+  }
+
+  // Vibración háptica en móvil
+  try {
+    if (navigator.vibrate) navigator.vibrate(50);
+  } catch (_) {}
+
   const video = el.arCameraFeed;
   const canvas = el.arCaptureCanvas;
   if (!video || !video.videoWidth) return;
@@ -477,13 +490,27 @@ async function captureARPhoto() {
     const motoImg = new Image();
     motoImg.crossOrigin = 'anonymous';
     motoImg.onload = () => {
+      // Dibujar sombra elíptica de suelo en el canvas
+      const shadowX = canvas.width * 0.5;
+      const shadowY = canvas.height * 0.78;
+      const shadowRx = canvas.width * 0.35;
+      const shadowRy = 35;
+      const grad = ctx.createRadialGradient(shadowX, shadowY, 0, shadowX, shadowY, shadowRx);
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0.6)');
+      grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.25)');
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(shadowX, shadowY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
+      ctx.fill();
+
       // Dibujar la moto sobre la foto de la cámara
       ctx.drawImage(motoImg, 0, 0, canvas.width, canvas.height);
 
       // Marca de agua sutil
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.font = 'bold 28px Space Grotesk, sans-serif';
-      ctx.fillText(MOTOS[state.motoIdx].nombre + ' — MotosAR Colombia', 40, canvas.height - 40);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'bold 26px Space Grotesk, sans-serif';
+      ctx.fillText(MOTOS[state.motoIdx].nombre + ' — MotosAR Colombia', 36, canvas.height - 36);
 
       // Exportar resultado a imagen
       const finalPhoto = canvas.toDataURL('image/png');
@@ -502,7 +529,6 @@ async function captureARPhoto() {
     motoImg.src = dataUrl;
   } catch (e) {
     console.error('Error componiendo foto:', e);
-    // Fallback: mostrar al menos la foto de la cámara
     const finalPhoto = canvas.toDataURL('image/png');
     el.photoPreviewImg.src = finalPhoto;
     el.photoDownloadBtn.href = finalPhoto;
@@ -648,8 +674,22 @@ function initEvents() {
   });
   el.arCamResetScale.addEventListener('click', () => {
     setCameraScale(1.0);
-    if (el.cameraMv) el.cameraMv.cameraOrbit = '0deg 75deg 2.5m';
+    if (el.cameraMv) {
+      el.cameraMv.cameraTarget = '0m 0.45m 0m';
+      el.cameraMv.cameraOrbit = '0deg 78deg 2.6m';
+      el.cameraMv.fieldOfView = '35deg';
+    }
   });
+
+  /* Botón girar 180 grados en cámara */
+  if (el.arCamRotate180) {
+    el.arCamRotate180.addEventListener('click', () => {
+      const curOrbit = el.cameraMv.getAttribute('camera-orbit') || '0deg 78deg 2.6m';
+      const deg = parseFloat(curOrbit) || 0;
+      const nextDeg = (deg + 180) % 360;
+      el.cameraMv.cameraOrbit = `${nextDeg}deg 78deg 2.6m`;
+    });
+  }
 
   /* Botones de Escala en Cámara */
   document.querySelectorAll('.ar-scale-btn').forEach(btn => {
