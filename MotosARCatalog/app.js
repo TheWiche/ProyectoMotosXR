@@ -1,7 +1,8 @@
 /**
  * app.js — MotosAR Catalog
  * WebAR SPA para catálogo de motocicletas en Colombia
- * Optimizado para dispositivos móviles, tablets y escritorio.
+ * Incluye Modo Cámara AR Universal (compatible con todos los teléfonos Android e iOS)
+ * y soporte nativo para Scene Viewer / Quick Look.
  */
 
 'use strict';
@@ -10,7 +11,7 @@
    CONFIGURACIÓN
 ══════════════════════════════════════════════ */
 const CONFIG = {
-  /** Número WhatsApp para cotizaciones (código país + número) */
+  /** Número WhatsApp para cotizaciones (código país + número sin + ni espacios) */
   whatsapp: '573145813171',
 
   /** Nombre del sitio en el QR sticker */
@@ -125,11 +126,14 @@ const MOTOS = [
    ESTADO DE LA APP
 ══════════════════════════════════════════════ */
 const state = {
-  motoIdx:      0,
-  fichaAbierta: false,
-  arPrompt:     false,
-  qrListo:      false,
-  loadTimer:    null,
+  motoIdx:        0,
+  fichaAbierta:   false,
+  arPrompt:       false,
+  qrListo:        false,
+  loadTimer:      null,
+  cameraStream:   null,
+  cameraScale:    1.0,
+  isCameraActive: false,
 };
 
 /* ══════════════════════════════════════════════
@@ -139,43 +143,70 @@ let el = {};
 
 function bindEls() {
   el = {
-    mv:           document.getElementById('mv'),
-    selector:     document.getElementById('selector'),
-    accentBar:    document.getElementById('accentBar'),
-    loadOverlay:  document.getElementById('loadOverlay'),
-    loadBar:      document.getElementById('loadBar'),
-    viewerTip:    document.getElementById('viewerTip'),
-    navPrev:      document.getElementById('navPrev'),
-    navNext:      document.getElementById('navNext'),
-    arPrompt:     document.getElementById('arPrompt'),
-    arPromptMoto: document.getElementById('arPromptMoto'),
-    arPromptBtn:  document.getElementById('arPromptBtn'),
-    arPromptSkip: document.getElementById('arPromptSkip'),
-    motoMarca:    document.getElementById('motoMarca'),
-    motoNombre:   document.getElementById('motoNombre'),
-    motoPrecio:   document.getElementById('motoPrecio'),
-    motoFinanc:   document.getElementById('motoFinanc'),
-    motoDesc:     document.getElementById('motoDesc'),
-    motoTags:     document.getElementById('motoTags'),
-    motoSpecs:    document.getElementById('motoSpecs'),
-    fichaPanel:   document.getElementById('fichaPanel'),
-    fichaToggle:  document.getElementById('fichaToggle'),
-    fichaCompact: document.getElementById('fichaCompact'),
-    fichaExpanded:document.getElementById('fichaExpanded'),
-    panelArBtn:   document.getElementById('panelArBtn'),
-    panelWaBtn:   document.getElementById('panelWaBtn'),
-    arFloatBtn:   document.getElementById('arFloatBtn'),
-    waBtn:        document.getElementById('waBtn'),
-    qrBtn:        document.getElementById('qrBtn'),
-    qrModal:      document.getElementById('qrModal'),
-    qrModalClose: document.getElementById('qrModalClose'),
-    qrContainer:  document.getElementById('qrContainer'),
-    stickerNombre:document.getElementById('stickerNombre'),
-    stickerPrecio:document.getElementById('stickerPrecio'),
-    qrUrlDisplay: document.getElementById('qrUrlDisplay'),
-    printBtn:     document.getElementById('printBtn'),
-    arToast:      document.getElementById('arToast'),
-    arToastMsg:   document.getElementById('arToastMsg'),
+    mv:                 document.getElementById('mv'),
+    selector:           document.getElementById('selector'),
+    accentBar:          document.getElementById('accentBar'),
+    loadOverlay:        document.getElementById('loadOverlay'),
+    loadBar:            document.getElementById('loadBar'),
+    viewerTip:          document.getElementById('viewerTip'),
+    navPrev:            document.getElementById('navPrev'),
+    navNext:            document.getElementById('navNext'),
+    arPrompt:           document.getElementById('arPrompt'),
+    arPromptMoto:       document.getElementById('arPromptMoto'),
+    arPromptBtn:        document.getElementById('arPromptBtn'),
+    arPromptSkip:       document.getElementById('arPromptSkip'),
+    motoMarca:          document.getElementById('motoMarca'),
+    motoNombre:         document.getElementById('motoNombre'),
+    motoPrecio:         document.getElementById('motoPrecio'),
+    motoFinanc:         document.getElementById('motoFinanc'),
+    motoDesc:           document.getElementById('motoDesc'),
+    motoTags:           document.getElementById('motoTags'),
+    motoSpecs:          document.getElementById('motoSpecs'),
+    fichaPanel:         document.getElementById('fichaPanel'),
+    fichaToggle:        document.getElementById('fichaToggle'),
+    fichaCompact:       document.getElementById('fichaCompact'),
+    fichaExpanded:      document.getElementById('fichaExpanded'),
+    panelArBtn:         document.getElementById('panelArBtn'),
+    panelWaBtn:         document.getElementById('panelWaBtn'),
+    arFloatBtn:         document.getElementById('arFloatBtn'),
+    waBtn:              document.getElementById('waBtn'),
+    qrBtn:              document.getElementById('qrBtn'),
+    qrModal:            document.getElementById('qrModal'),
+    qrModalClose:       document.getElementById('qrModalClose'),
+    qrContainer:        document.getElementById('qrContainer'),
+    stickerNombre:      document.getElementById('stickerNombre'),
+    stickerPrecio:      document.getElementById('stickerPrecio'),
+    qrUrlDisplay:       document.getElementById('qrUrlDisplay'),
+    printBtn:           document.getElementById('printBtn'),
+    arToast:            document.getElementById('arToast'),
+    arToastMsg:         document.getElementById('arToastMsg'),
+
+    /* Modal de Selección AR */
+    arChoiceModal:      document.getElementById('arChoiceModal'),
+    arChoiceClose:      document.getElementById('arChoiceClose'),
+    btnLaunchCameraAR:  document.getElementById('btnLaunchCameraAR'),
+    btnLaunchNativeAR:  document.getElementById('btnLaunchNativeAR'),
+
+    /* Vista Cámara AR Universal */
+    arCameraView:       document.getElementById('arCameraView'),
+    arCameraFeed:       document.getElementById('arCameraFeed'),
+    arCaptureCanvas:    document.getElementById('arCaptureCanvas'),
+    cameraMv:           document.getElementById('cameraMv'),
+    arCamClose:         document.getElementById('arCamClose'),
+    arCamMotoNombre:    document.getElementById('arCamMotoNombre'),
+    arCamResetScale:    document.getElementById('arCamResetScale'),
+    arCamPrev:          document.getElementById('arCamPrev'),
+    arCamNext:          document.getElementById('arCamNext'),
+    arCamCapture:       document.getElementById('arCamCapture'),
+    arCamTip:           document.getElementById('arCamTip'),
+
+    /* Modal de Foto Capturada */
+    photoModal:         document.getElementById('photoModal'),
+    photoModalClose:    document.getElementById('photoModalClose'),
+    photoPreviewImg:    document.getElementById('photoPreviewImg'),
+    photoDownloadBtn:   document.getElementById('photoDownloadBtn'),
+    photoWaBtn:         document.getElementById('photoWaBtn'),
+    photoRetakeBtn:     document.getElementById('photoRetakeBtn'),
   };
 }
 
@@ -202,7 +233,6 @@ function formatCOP(n) {
 }
 
 function motoBaseURL() {
-  /* URL absoluta canónica de esta vista */
   const path = window.location.pathname.replace(/\/?[^/]*$/, '/');
   return window.location.origin + path;
 }
@@ -219,7 +249,7 @@ function loadMoto(idx) {
   el.accentBar.style.background = m.acento;
   document.documentElement.style.setProperty('--accent-ar', m.acento);
 
-  /* Carga del modelo 3D */
+  /* Carga del modelo 3D principal */
   clearTimeout(state.loadTimer);
   el.loadOverlay.classList.remove('hidden', 'fade-out');
   el.loadBar.style.width = '0%';
@@ -229,6 +259,12 @@ function loadMoto(idx) {
   requestAnimationFrame(() => {
     el.mv.setAttribute('src', m.glb);
   });
+
+  /* Si la cámara AR está activa, sincronizar también el modelo de la cámara */
+  if (state.isCameraActive && el.cameraMv) {
+    el.arCamMotoNombre.textContent = m.nombre;
+    el.cameraMv.setAttribute('src', m.glb);
+  }
 
   /* Timeout de seguridad en caso de redes móviles lentas */
   state.loadTimer = setTimeout(() => hideLoadOverlay(), 25000);
@@ -325,19 +361,153 @@ function buildSelector() {
 /* ══════════════════════════════════════════════
    ACTIVAR REALIDAD AUMENTADA (AR)
 ══════════════════════════════════════════════ */
-function activateAR() {
+function requestAR() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  if (isIOS) {
+    // En iOS Safari, Quick Look funciona de forma nativa e impecable sin Play Store
+    if (el.mv.canActivateAR) {
+      el.mv.activateAR();
+      return;
+    }
+  }
+
+  // En Android u otros dispositivos, mostrar el selector para garantizar compatibilidad
+  el.arChoiceModal.classList.remove('hidden');
+}
+
+function launchNativeAR() {
+  el.arChoiceModal.classList.add('hidden');
   if (el.mv.canActivateAR) {
     el.mv.activateAR();
   } else {
-    showARToast();
+    showARToast("Google Scene Viewer no disponible. Iniciando Cámara AR en Vivo...");
+    setTimeout(() => startCameraAR(), 1200);
   }
 }
 
-function showARToast() {
+function showARToast(msg) {
   const m = MOTOS[state.motoIdx];
-  el.arToastMsg.textContent = `Abre este enlace desde Google Chrome en Android o Safari en iPhone para ver la ${m.marca} en tu espacio.`;
+  el.arToastMsg.textContent = msg || `Iniciando Cámara AR en Vivo...`;
   el.arToast.classList.remove('hidden');
   setTimeout(() => el.arToast.classList.add('hidden'), 5000);
+}
+
+/* ══════════════════════════════════════════════
+   CÁMARA AR UNIVERSAL (WebAR Passthrough)
+   Funciona en el 100% de los teléfonos con cámara web
+══════════════════════════════════════════════ */
+async function startCameraAR() {
+  el.arChoiceModal.classList.add('hidden');
+  const m = MOTOS[state.motoIdx];
+
+  try {
+    // Solicitar cámara trasera (environment)
+    const constraints = {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+      audio: false,
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    state.cameraStream = stream;
+    el.arCameraFeed.srcObject = stream;
+    await el.arCameraFeed.play();
+
+    state.isCameraActive = true;
+    el.arCameraView.classList.remove('hidden');
+    el.arCamMotoNombre.textContent = m.nombre;
+
+    // Cargar modelo 3D en el visor de cámara transparente
+    el.cameraMv.setAttribute('src', m.glb);
+    setCameraScale(1.0);
+
+    // Ocultar tip a los 4s
+    setTimeout(() => {
+      if (el.arCamTip) el.arCamTip.style.opacity = '0';
+    }, 4500);
+
+  } catch (err) {
+    console.warn('Error accediendo a la cámara:', err);
+    alert('Para ver la moto en tu espacio, permite el acceso a la cámara en el navegador.');
+  }
+}
+
+function stopCameraAR() {
+  if (state.cameraStream) {
+    state.cameraStream.getTracks().forEach(track => track.stop());
+    state.cameraStream = null;
+  }
+  state.isCameraActive = false;
+  el.arCameraView.classList.add('hidden');
+  el.arCameraFeed.srcObject = null;
+}
+
+function setCameraScale(scale) {
+  state.cameraScale = scale;
+  if (el.cameraMv) {
+    el.cameraMv.scale = `${scale} ${scale} ${scale}`;
+  }
+  document.querySelectorAll('.ar-scale-btn').forEach(b => {
+    b.classList.toggle('active', parseFloat(b.dataset.scale) === scale);
+  });
+}
+
+/* ══════════════════════════════════════════════
+   CAPTURAR FOTO CON LA MOTO
+══════════════════════════════════════════════ */
+async function captureARPhoto() {
+  const video = el.arCameraFeed;
+  const canvas = el.arCaptureCanvas;
+  if (!video || !video.videoWidth) return;
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+
+  // 1. Dibujar el fotograma en vivo de la cámara trasera
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // 2. Obtener el render transparente del modelo 3D desde model-viewer
+  try {
+    const dataUrl = await el.cameraMv.toDataURL('image/png');
+    const motoImg = new Image();
+    motoImg.crossOrigin = 'anonymous';
+    motoImg.onload = () => {
+      // Dibujar la moto sobre la foto de la cámara
+      ctx.drawImage(motoImg, 0, 0, canvas.width, canvas.height);
+
+      // Marca de agua sutil
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.font = 'bold 28px Space Grotesk, sans-serif';
+      ctx.fillText(MOTOS[state.motoIdx].nombre + ' — MotosAR Colombia', 40, canvas.height - 40);
+
+      // Exportar resultado a imagen
+      const finalPhoto = canvas.toDataURL('image/png');
+      el.photoPreviewImg.src = finalPhoto;
+      el.photoDownloadBtn.href = finalPhoto;
+
+      // Actualizar link de WhatsApp con la foto
+      const m = MOTOS[state.motoIdx];
+      const waText = encodeURIComponent(
+        `¡Hola! Acabo de probar la *${m.nombre}* en mi espacio en Realidad Aumentada y quiero cotizarla. Precio: ${formatCOP(m.precio)}`
+      );
+      el.photoWaBtn.href = `https://wa.me/${CONFIG.whatsapp}?text=${waText}`;
+
+      el.photoModal.classList.remove('hidden');
+    };
+    motoImg.src = dataUrl;
+  } catch (e) {
+    console.error('Error componiendo foto:', e);
+    // Fallback: mostrar al menos la foto de la cámara
+    const finalPhoto = canvas.toDataURL('image/png');
+    el.photoPreviewImg.src = finalPhoto;
+    el.photoDownloadBtn.href = finalPhoto;
+    el.photoModal.classList.remove('hidden');
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -354,7 +524,7 @@ function initARPrompt() {
 
   el.arPromptBtn.addEventListener('click', () => {
     el.arPrompt.classList.add('hidden');
-    setTimeout(activateAR, 500);
+    setTimeout(requestAR, 400);
   }, { once: true });
 
   el.arPromptSkip.addEventListener('click', () => {
@@ -436,8 +606,12 @@ function initModelViewerEvents() {
       </p>`;
   });
 
+  // Si Scene Viewer falla al lanzar AR, sugerir automáticamente la Cámara AR
   el.mv.addEventListener('ar-status', e => {
-    if (e.detail.status === 'failed') showARToast();
+    if (e.detail.status === 'failed') {
+      showARToast('Google Scene Viewer no compatible en este móvil.');
+      setTimeout(() => startCameraAR(), 1200);
+    }
   });
 
   /* Desvanecer tip al primer contacto */
@@ -450,15 +624,45 @@ function initModelViewerEvents() {
    EVENT LISTENERS
 ══════════════════════════════════════════════ */
 function initEvents() {
-  /* Botón AR flotante */
-  el.arFloatBtn.addEventListener('click', activateAR);
+  /* Botón AR flotante principal */
+  el.arFloatBtn.addEventListener('click', requestAR);
 
   /* Botón AR dentro de la ficha técnica */
   if (el.panelArBtn) {
-    el.panelArBtn.addEventListener('click', activateAR);
+    el.panelArBtn.addEventListener('click', requestAR);
   }
 
-  /* Flechas de navegación táctil */
+  /* Modal de Selección AR */
+  el.btnLaunchCameraAR.addEventListener('click', startCameraAR);
+  el.btnLaunchNativeAR.addEventListener('click', launchNativeAR);
+  el.arChoiceClose.addEventListener('click', () => el.arChoiceModal.classList.add('hidden'));
+
+  /* Controles de Cámara AR */
+  el.arCamClose.addEventListener('click', stopCameraAR);
+  el.arCamCapture.addEventListener('click', captureARPhoto);
+  el.arCamPrev.addEventListener('click', () => {
+    loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
+  });
+  el.arCamNext.addEventListener('click', () => {
+    loadMoto((state.motoIdx + 1) % MOTOS.length);
+  });
+  el.arCamResetScale.addEventListener('click', () => {
+    setCameraScale(1.0);
+    if (el.cameraMv) el.cameraMv.cameraOrbit = '0deg 75deg 2.5m';
+  });
+
+  /* Botones de Escala en Cámara */
+  document.querySelectorAll('.ar-scale-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      setCameraScale(parseFloat(e.target.dataset.scale));
+    });
+  });
+
+  /* Modal de Foto */
+  el.photoModalClose.addEventListener('click', () => el.photoModal.classList.add('hidden'));
+  el.photoRetakeBtn.addEventListener('click', () => el.photoModal.classList.add('hidden'));
+
+  /* Flechas de navegación táctil en catálogo */
   el.navPrev.addEventListener('click', () => {
     loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);
   });
@@ -483,6 +687,9 @@ function initEvents() {
   /* Navegación por teclado */
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      if (!el.arCameraView.classList.contains('hidden')) { stopCameraAR(); return; }
+      if (!el.photoModal.classList.contains('hidden')) { el.photoModal.classList.add('hidden'); return; }
+      if (!el.arChoiceModal.classList.contains('hidden')) { el.arChoiceModal.classList.add('hidden'); return; }
       if (!el.qrModal.classList.contains('hidden')) { closeQRModal(); return; }
       if (state.fichaAbierta) { toggleFicha(false); return; }
     }
@@ -493,7 +700,7 @@ function initEvents() {
     if (n >= 1 && n <= MOTOS.length) loadMoto(n - 1);
   });
 
-  /* Swipe táctil EXCLUSIVAMENTE en la ficha técnica (no interfiere con el 3D) */
+  /* Swipe táctil en la ficha técnica */
   let touchStartX = 0;
   let touchStartY = 0;
   el.fichaPanel.addEventListener('touchstart', e => {
@@ -505,14 +712,12 @@ function initEvents() {
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
 
-    /* Si el movimiento fue vertical en el handle, toggle ficha */
     if (Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx)) {
       if (dy < -40 && !state.fichaAbierta) toggleFicha(true);
       else if (dy > 40 && state.fichaAbierta) toggleFicha(false);
       return;
     }
 
-    /* Swipe horizontal en la ficha para cambiar de moto */
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
       if (dx < 0) loadMoto((state.motoIdx + 1) % MOTOS.length);
       else        loadMoto((state.motoIdx - 1 + MOTOS.length) % MOTOS.length);

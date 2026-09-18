@@ -254,14 +254,215 @@
     </div>
   </div><!-- /#qrModal -->
 
+  <!-- ══════════════════════════════════════════
+       MODAL DE SELECCIÓN DE MODO AR
+  ══════════════════════════════════════════ -->
+  <div id="arChoiceModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="arChoiceTitle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="arChoiceTitle" class="modal-title">¿Cómo deseas ver la moto?</h2>
+        <button id="arChoiceClose" class="modal-close-btn" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px; line-height:1.5;">
+        Elige la mejor opción para tu dispositivo:
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:12px;">
+        <!-- Opción 1: Cámara en vivo Universal -->
+        <button id="btnLaunchCameraAR" style="
+          display:flex; align-items:center; gap:14px; padding:16px;
+          background: rgba(163, 230, 53, 0.1); border: 2px solid var(--accent-ar);
+          border-radius: var(--r); text-align:left; cursor:pointer; transition:all 0.18s;
+        ">
+          <div style="
+            width:44px; height:44px; border-radius:50%; background:var(--accent-ar);
+            display:flex; align-items:center; justify-content:center; color:#000; flex-shrink:0;
+          ">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316Z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <strong style="color:var(--text); font-size:14.5px;">Cámara AR en Vivo</strong>
+              <span style="background:var(--accent-ar); color:#000; font-family:var(--font-mono); font-size:9px; font-weight:700; padding:1px 6px; border-radius:99px;">UNIVERSAL</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:3px;">
+              Funciona en <strong>todos los teléfonos</strong> sin instalar Google ARCore ni apps. Usa tu cámara web.
+            </p>
+          </div>
+        </button>
+
+        <!-- Opción 2: Scene Viewer Nativo Google / Apple -->
+        <button id="btnLaunchNativeAR" style="
+          display:flex; align-items:center; gap:14px; padding:14px 16px;
+          background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+          border-radius: var(--r); text-align:left; cursor:pointer; transition:all 0.18s;
+        ">
+          <div style="
+            width:44px; height:44px; border-radius:50%; background:var(--card-hi);
+            display:flex; align-items:center; justify-content:center; color:var(--text-muted); flex-shrink:0;
+          ">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/>
+            </svg>
+          </div>
+          <div>
+            <strong style="color:var(--text); font-size:14px;">Google Scene Viewer / Apple AR</strong>
+            <p style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+              Requiere <em>Servicios de Google Play para RA</em> en Android o iPhone con Safari.
+            </p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       VISTA PANTALLA COMPLETA: CÁMARA AR UNIVERSAL
+  ══════════════════════════════════════════ -->
+  <div id="arCameraView" class="ar-camera-view hidden">
+    <!-- Transmisión de la cámara trasera -->
+    <video id="arCameraFeed" autoplay playsinline muted></video>
+
+    <!-- Canvas oculto para captura de fotos -->
+    <canvas id="arCaptureCanvas" style="display:none;"></canvas>
+
+    <!-- Contenedor del modelo 3D sobre la cámara -->
+    <div id="arCameraModelWrap" class="ar-camera-model-wrap">
+      <model-viewer
+        id="cameraMv"
+        touch-action="none"
+        camera-controls
+        shadow-intensity="1.2"
+        shadow-softness="0.8"
+        environment-image="neutral"
+        exposure="1.3"
+        min-field-of-view="15deg"
+        max-field-of-view="80deg"
+        camera-orbit="0deg 75deg 2.5m"
+        style="width:100%; height:100%; background:transparent; --poster-color:transparent;"
+      ></model-viewer>
+    </div>
+
+    <!-- UI superpuesta sobre la cámara -->
+    <div class="ar-camera-ui">
+      <!-- Barra superior de la cámara -->
+      <div class="ar-cam-top-bar">
+        <button id="arCamClose" class="ar-cam-btn-icon" aria-label="Salir de la cámara">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div class="ar-cam-title-pill">
+          <span id="arCamMotoNombre">AKT NKD 125</span>
+          <span class="ar-cam-live-dot"></span>
+        </div>
+
+        <button id="arCamResetScale" class="ar-cam-btn-icon" aria-label="Resetear tamaño" title="Resetear escala">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Guía central para el usuario -->
+      <div id="arCamTip" class="ar-cam-tip">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+        </svg>
+        <span>Apunta a tu piso &middot; Arrastra para rotar &middot; 2 dedos para zoom</span>
+      </div>
+
+      <!-- Barra inferior de la cámara -->
+      <div class="ar-cam-bottom-bar">
+        <!-- Selector rápido de tamaño / escala -->
+        <div class="ar-scale-selector">
+          <button class="ar-scale-btn" data-scale="0.6">0.6x</button>
+          <button class="ar-scale-btn active" data-scale="1.0">1:1 Real</button>
+          <button class="ar-scale-btn" data-scale="1.4">1.4x</button>
+        </div>
+
+        <!-- Fila de controles principales: Cambiar moto / Obturador Foto / WhatsApp -->
+        <div class="ar-shutter-row">
+          <!-- Botón anterior moto -->
+          <button id="arCamPrev" class="ar-cam-round-btn" aria-label="Anterior moto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+
+          <!-- Botón Obturador Foto -->
+          <button id="arCamCapture" class="ar-shutter-btn" aria-label="Tomar foto con la moto">
+            <span class="ar-shutter-inner"></span>
+          </button>
+
+          <!-- Botón siguiente moto -->
+          <button id="arCamNext" class="ar-cam-round-btn" aria-label="Siguiente moto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       MODAL DE FOTO CAPTURADA
+  ══════════════════════════════════════════ -->
+  <div id="photoModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="photoModalTitle">
+    <div class="modal-box" style="text-align:center;">
+      <div class="modal-header">
+        <h2 id="photoModalTitle" class="modal-title">¡Foto con tu moto!</h2>
+        <button id="photoModalClose" class="modal-close-btn" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div style="border-radius:var(--r); overflow:hidden; border:1px solid var(--border); margin-bottom:14px; background:#000;">
+        <img id="photoPreviewImg" src="" alt="Foto en Realidad Aumentada" style="width:100%; height:auto; display:block;" />
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <a id="photoDownloadBtn" href="#" download="moto-en-mi-casa.png" class="btn-primary" style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+          </svg>
+          Guardar Foto en mi Teléfono
+        </a>
+
+        <a id="photoWaBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn-panel-wa" style="text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+          Cotizar esta Moto por WhatsApp
+        </a>
+
+        <button id="photoRetakeBtn" class="btn-secondary">
+          Tomar otra foto
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- AR no disponible toast -->
   <div id="arToast" class="ar-toast hidden" role="alert">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
     </svg>
     <div>
-      <p class="ar-toast-title">AR no disponible</p>
-      <p class="ar-toast-sub" id="arToastMsg">Usa Chrome en Android o Safari en iPhone</p>
+      <p class="ar-toast-title">AR Nativo no disponible</p>
+      <p class="ar-toast-sub" id="arToastMsg">Iniciando Cámara AR en Vivo...</p>
     </div>
   </div>
 
