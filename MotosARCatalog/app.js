@@ -205,14 +205,11 @@ function bindEls() {
     cameraMv:               document.getElementById('cameraMv'),
     arCamClose:             document.getElementById('arCamClose'),
     arCamMotoNombre:        document.getElementById('arCamMotoNombre'),
-    spatialStatusDot:       document.getElementById('spatialStatusDot'),
     arCamTimerBtn:          document.getElementById('arCamTimerBtn'),
     arCamTimerBadge:        document.getElementById('arCamTimerBadge'),
-    arCamAnchorBtn:         document.getElementById('arCamAnchorBtn'),
     arCamRotate180:         document.getElementById('arCamRotate180'),
     arCamTip:               document.getElementById('arCamTip'),
     arCamTipText:           document.getElementById('arCamTipText'),
-    toggleSpatialBtn:       document.getElementById('toggleSpatialBtn'),
     arOrbitBar:             document.getElementById('arOrbitBar'),
     arCamPrev:              document.getElementById('arCamPrev'),
     arCamNext:              document.getElementById('arCamNext'),
@@ -382,80 +379,24 @@ function buildSelector() {
 }
 
 /* ══════════════════════════════════════════════
-   ESTADO Y MOTOR DE ANCLAJE ESPACIAL (WebAR)
-/* ══════════════════════════════════════════════
-   ESTADO Y MOTOR DE ANCLAJE ESPACIAL (WebAR 360°)
-   Fija la moto en el piso y permite rodearla en 360°
-   caminando alrededor o mediante chips táctiles
+   ESTADO Y ROTACIÓN SUAVE 360° (Botones sin giroscopio)
+   Giro suave orgánico por interpolación lerp
 ══════════════════════════════════════════════ */
-const spatialState = {
-  active:          true,      // Modo Giroscopio 360° activo
-  tracking:        false,     // Recibiendo datos de giroscopio/brújula
-  hasAnchor:       false,     // Punto de origen establecido
-  baseHeading:     null,      // Rumbo inicial (alpha) al calibrar
-  baseBeta:        65,        // Inclinación vertical base
-  currentAlpha:    0,         // Rumbo actual filtrado (EMA)
-  currentBeta:     65,        // Inclinación actual filtrada (EMA)
-  currentGamma:    0,
-  manualOrbitDeg:  0,         // Ángulo de órbita base (0, 90, 180, 270)
-  targetOrbitDeg:  0,         // Ángulo objetivo de órbita 360
-  currentOrbitDeg: 0,         // Ángulo de órbita actual renderizado
-  manualFloorX:    0,         // Desplazamiento manual en pantalla X (toque/arrastre)
-  manualFloorY:    0,         // Desplazamiento manual en pantalla Y
-  parallaxX:       0,         // Parallax suave acotado X
-  parallaxY:       0,         // Parallax suave acotado Y
-  lastRenderX:     -9999,
-  lastRenderY:     -9999,
-  lastRenderOrbit: -9999,
-  animId:          null,
-  tipTimer:        null,
+const orbitState = {
+  currentDeg: 0,
+  targetDeg: 0,
+  animId: null,
+  tipTimer: null,
 };
 
 function showArCamTip(text) {
   if (!el.arCamTip || !el.arCamTipText) return;
   el.arCamTipText.textContent = text;
   el.arCamTip.style.opacity = '1';
-  clearTimeout(spatialState.tipTimer);
-  spatialState.tipTimer = setTimeout(() => {
+  clearTimeout(orbitState.tipTimer);
+  orbitState.tipTimer = setTimeout(() => {
     if (el.arCamTip) el.arCamTip.style.opacity = '0';
-  }, 4000);
-}
-
-function pulseGroundReticle() {
-  if (!el.arGroundReticle) return;
-  el.arGroundReticle.style.opacity = '1';
-  setTimeout(() => {
-    if (el.arGroundReticle) el.arGroundReticle.style.opacity = '0.4';
-  }, 1200);
-}
-
-function setSpatialAnchor(alpha, beta) {
-  const a = (alpha !== undefined && alpha !== null) ? alpha : spatialState.currentAlpha;
-  const b = (beta !== undefined && beta !== null) ? beta : spatialState.currentBeta;
-
-  spatialState.baseHeading = (a !== null && a !== undefined) ? a : 0;
-  spatialState.baseBeta    = (b !== null && b !== undefined) ? b : 65;
-  spatialState.hasAnchor   = true;
-  spatialState.parallaxX   = 0;
-  spatialState.parallaxY   = 0;
-  spatialState.targetOrbitDeg  = spatialState.manualOrbitDeg;
-  spatialState.currentOrbitDeg = spatialState.manualOrbitDeg;
-
-  pulseGroundReticle();
-  showArCamTip('¡Moto fijada en el piso! Camina alrededor para verla en 360°');
-  try { if (navigator.vibrate) navigator.vibrate(40); } catch (_) {}
-}
-
-function setOrbitAngle(deg) {
-  spatialState.manualOrbitDeg = deg;
-  // Recalibrar rumbo base para que la posición física actual mire este ángulo
-  spatialState.baseHeading = spatialState.currentAlpha;
-  spatialState.targetOrbitDeg = deg;
-  spatialState.parallaxX = 0;
-  spatialState.parallaxY = 0;
-  updateOrbitChipsUI(deg);
-  pulseGroundReticle();
-  try { if (navigator.vibrate) navigator.vibrate(30); } catch (_) {}
+  }, 3500);
 }
 
 function updateOrbitChipsUI(deg) {
@@ -468,162 +409,33 @@ function updateOrbitChipsUI(deg) {
   });
 }
 
-function onDeviceOrientation(e) {
-  let alpha = (e.webkitCompassHeading !== undefined)
-    ? (360 - e.webkitCompassHeading)
-    : e.alpha;
-  let beta  = e.beta;
-  let gamma = e.gamma;
+function smoothRotateTo(targetDeg) {
+  orbitState.targetDeg = ((targetDeg % 360) + 360) % 360;
+  updateOrbitChipsUI(orbitState.targetDeg);
+  try { if (navigator.vibrate) navigator.vibrate(25); } catch (_) {}
 
-  if (alpha === null || alpha === undefined || beta === null || beta === undefined) return;
+  if (orbitState.animId) cancelAnimationFrame(orbitState.animId);
 
-  spatialState.tracking = true;
+  function animate() {
+    if (!state.isCameraActive || !el.cameraMv) return;
+    let diff = orbitState.targetDeg - orbitState.currentDeg;
+    // Camino angular más corto [-180, 180]
+    diff = ((diff + 180) % 360 + 360) % 360 - 180;
 
-  // Filtro de media móvil exponencial (EMA) para eliminar cualquier temblor
-  const filter = 0.22;
-  if (!spatialState.hasAnchor) {
-    spatialState.currentAlpha = alpha;
-    spatialState.currentBeta  = beta;
-    setSpatialAnchor(alpha, beta);
-    return;
+    if (Math.abs(diff) < 0.25) {
+      orbitState.currentDeg = orbitState.targetDeg;
+      el.cameraMv.cameraOrbit = `${orbitState.currentDeg.toFixed(1)}deg 78deg 2.6m`;
+      orbitState.animId = null;
+      return;
+    }
+
+    // Lerp suave del 13% para animación fluida y orgánica
+    orbitState.currentDeg += diff * 0.13;
+    orbitState.currentDeg = ((orbitState.currentDeg % 360) + 360) % 360;
+    el.cameraMv.cameraOrbit = `${orbitState.currentDeg.toFixed(1)}deg 78deg 2.6m`;
+    orbitState.animId = requestAnimationFrame(animate);
   }
-
-  spatialState.currentAlpha += (alpha - spatialState.currentAlpha) * filter;
-  spatialState.currentBeta  += (beta  - spatialState.currentBeta)  * filter;
-  spatialState.currentGamma = gamma;
-
-  if (!spatialState.active) return;
-
-  // 1. Diferencia angular al caminar alrededor de la moto [-180, 180]
-  let diffAlpha = spatialState.currentAlpha - spatialState.baseHeading;
-  diffAlpha = ((diffAlpha + 180) % 360 + 360) % 360 - 180;
-
-  // Contra-rotación: al rodear físicamente la moto, se visualizan sus costados o parte trasera
-  spatialState.targetOrbitDeg = spatialState.manualOrbitDeg - diffAlpha;
-
-  // 2. Parallax físico acotado: la moto se mantiene en su sitio del suelo con profundidad 3D
-  spatialState.parallaxX = -Math.sin(diffAlpha * Math.PI / 180) * 40;
-  spatialState.parallaxY = Math.max(-30, Math.min(30, (spatialState.currentBeta - spatialState.baseBeta) * 2));
-}
-
-function spatialLoop() {
-  if (!state.isCameraActive) return;
-
-  if (spatialState.active) {
-    // Interpolación lerp suave a 60 FPS
-    const lerp = 0.2;
-    spatialState.currentOrbitDeg += (spatialState.targetOrbitDeg - spatialState.currentOrbitDeg) * lerp;
-
-    const targetX = spatialState.manualFloorX + spatialState.parallaxX;
-    const targetY = spatialState.manualFloorY + spatialState.parallaxY;
-
-    // 1. Desplazamiento del escenario: solo tocar el DOM si el cambio supera el umbral imperceptible (0.3px)
-    if (Math.abs(targetX - spatialState.lastRenderX) > 0.3 || Math.abs(targetY - spatialState.lastRenderY) > 0.3) {
-      if (el.arSpatialStage) {
-        el.arSpatialStage.style.transform = `translate3d(${targetX.toFixed(1)}px, ${targetY.toFixed(1)}px, 0)`;
-      }
-      spatialState.lastRenderX = targetX;
-      spatialState.lastRenderY = targetY;
-    }
-
-    // 2. Rotación orbital 3D: solo actualizar propiedad si cambió más de 0.35° (optimización extrema)
-    const normOrbit = ((spatialState.currentOrbitDeg % 360) + 360) % 360;
-    if (Math.abs(normOrbit - spatialState.lastRenderOrbit) > 0.35) {
-      if (el.cameraMv) {
-        // Inclinación vertical (phi) adaptada sutilmente a la inclinación del teléfono
-        const phi = Math.max(62, Math.min(85, 78 - (spatialState.currentBeta - spatialState.baseBeta) * 0.25));
-        el.cameraMv.cameraOrbit = `${normOrbit.toFixed(1)}deg ${phi.toFixed(1)}deg 2.6m`;
-      }
-      spatialState.lastRenderOrbit = normOrbit;
-      updateOrbitChipsUI(normOrbit);
-    }
-
-    if (el.spatialStatusDot) {
-      el.spatialStatusDot.style.background = '#22c55e';
-      el.spatialStatusDot.style.boxShadow = '0 0 8px #22c55e';
-    }
-  } else {
-    // Modo Giroscopio Pausado
-    const targetX = spatialState.manualFloorX;
-    const targetY = spatialState.manualFloorY;
-    if (Math.abs(targetX - spatialState.lastRenderX) > 0.3 || Math.abs(targetY - spatialState.lastRenderY) > 0.3) {
-      if (el.arSpatialStage) {
-        el.arSpatialStage.style.transform = `translate3d(${targetX.toFixed(1)}px, ${targetY.toFixed(1)}px, 0)`;
-      }
-      spatialState.lastRenderX = targetX;
-      spatialState.lastRenderY = targetY;
-    }
-    if (el.spatialStatusDot) {
-      el.spatialStatusDot.style.background = '#f59e0b';
-      el.spatialStatusDot.style.boxShadow = '0 0 8px #f59e0b';
-    }
-  }
-
-  spatialState.animId = requestAnimationFrame(spatialLoop);
-}
-
-function toggleSpatialMode() {
-  spatialState.active = !spatialState.active;
-  if (el.toggleSpatialBtn) {
-    el.toggleSpatialBtn.classList.toggle('active', spatialState.active);
-    const span = el.toggleSpatialBtn.querySelector('span:last-child');
-    if (span) {
-      span.textContent = spatialState.active ? 'Giroscopio 360°' : 'Giro Pausado';
-    }
-    const dot = el.toggleSpatialBtn.querySelector('.ar-gyro-indicator');
-    if (dot) {
-      dot.style.background = spatialState.active ? '#22c55e' : '#94a3b8';
-      dot.style.boxShadow = spatialState.active ? '0 0 6px #22c55e' : 'none';
-    }
-  }
-
-  if (spatialState.active) {
-    setSpatialAnchor();
-    showArCamTip('Giroscopio 360° activo: Camina alrededor de la moto');
-  } else {
-    spatialState.parallaxX = 0;
-    spatialState.parallaxY = 0;
-    showArCamTip('Giroscopio pausado: Usa los botones 0°, 90°, 180°, 270° o arrastra');
-  }
-}
-
-/* ══════════════════════════════════════════════
-   INTERACCIÓN TÁCTIL EN PISO (AR REPOSITIONING)
-══════════════════════════════════════════════ */
-let isFloorTouchBound = false;
-function initCameraFloorInteractions() {
-  if (isFloorTouchBound || !el.arCameraView) return;
-  isFloorTouchBound = true;
-
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let isDraggingFloor = false;
-
-  el.arCameraView.addEventListener('touchstart', e => {
-    if (e.target.closest('button') || e.target.closest('a') || e.target.closest('.ar-cam-top-bar') || e.target.closest('.ar-cam-bottom-bar')) return;
-    if (e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      isDraggingFloor = true;
-    }
-  }, { passive: true });
-
-  el.arCameraView.addEventListener('touchmove', e => {
-    if (!isDraggingFloor || e.touches.length !== 1) return;
-    const dx = e.touches[0].clientX - touchStartX;
-    const dy = e.touches[0].clientY - touchStartY;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-
-    spatialState.manualFloorX += dx;
-    spatialState.manualFloorY += dy;
-  }, { passive: true });
-
-  el.arCameraView.addEventListener('touchend', e => {
-    if (!isDraggingFloor) return;
-    isDraggingFloor = false;
-    pulseGroundReticle();
-  }, { passive: true });
+  orbitState.animId = requestAnimationFrame(animate);
 }
 
 /* ══════════════════════════════════════════════
@@ -713,32 +525,16 @@ async function startCameraAR() {
     el.cameraMv.fieldOfView = '35deg';
     setCameraScale(1.0);
 
-    // Iniciar calibración y anclaje al suelo
-    spatialState.hasAnchor = false;
-    spatialState.baseHeading = null;
-    spatialState.manualOrbitDeg = 0;
-    spatialState.targetOrbitDeg = 0;
-    spatialState.currentOrbitDeg = 0;
-    spatialState.manualFloorX = 0;
-    spatialState.manualFloorY = 0;
-    spatialState.parallaxX = 0;
-    spatialState.parallaxY = 0;
-    spatialState.lastRenderX = -9999;
-    spatialState.lastRenderY = -9999;
-    spatialState.lastRenderOrbit = -9999;
-
-    initCameraFloorInteractions();
+    // Iniciar rotación orbital en 0° (vista frontal)
+    orbitState.currentDeg = 0;
+    orbitState.targetDeg = 0;
+    if (orbitState.animId) {
+      cancelAnimationFrame(orbitState.animId);
+      orbitState.animId = null;
+    }
     updateOrbitChipsUI(0);
 
-    window.addEventListener('deviceorientation', onDeviceOrientation, true);
-    if ('ondeviceorientationabsolute' in window) {
-      window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
-    }
-
-    if (spatialState.animId) cancelAnimationFrame(spatialState.animId);
-    spatialState.animId = requestAnimationFrame(spatialLoop);
-
-    showArCamTip('Toca el piso para ubicarla · Camina alrededor para verla en 360°');
+    showArCamTip('Gira la moto suavemente con los botones o con el dedo');
 
   } catch (err) {
     console.warn('Error accediendo a la cámara:', err);
@@ -752,23 +548,14 @@ function stopCameraAR() {
     state.cameraStream = null;
   }
 
-  window.removeEventListener('deviceorientation', onDeviceOrientation, true);
-  if ('ondeviceorientationabsolute' in window) {
-    window.removeEventListener('deviceorientationabsolute', onDeviceOrientation, true);
-  }
-
-  if (spatialState.animId) {
-    cancelAnimationFrame(spatialState.animId);
-    spatialState.animId = null;
+  if (orbitState.animId) {
+    cancelAnimationFrame(orbitState.animId);
+    orbitState.animId = null;
   }
 
   state.isCameraActive = false;
   el.arCameraView.classList.add('hidden');
   el.arCameraFeed.srcObject = null;
-
-  if (el.arSpatialStage) {
-    el.arSpatialStage.style.transform = 'translate3d(0, 0, 0)';
-  }
 }
 
 function setCameraScale(scale) {
@@ -955,16 +742,9 @@ async function executePhotoSnap() {
     const motoImg = new Image();
     motoImg.crossOrigin = 'anonymous';
     motoImg.onload = () => {
-      const scaleX = canvas.width / (window.innerWidth || canvas.width);
-      const scaleY = canvas.height / (window.innerHeight || canvas.height);
-      const currentStageX = spatialState.manualFloorX + (spatialState.active ? spatialState.parallaxX : 0);
-      const currentStageY = spatialState.manualFloorY + (spatialState.active ? spatialState.parallaxY : 0);
-      const drawOffsetX = currentStageX * scaleX;
-      const drawOffsetY = currentStageY * scaleY;
-
       // Sombra elíptica realista en el suelo
-      const shadowX = canvas.width * 0.5 + drawOffsetX;
-      const shadowY = canvas.height * 0.78 + drawOffsetY;
+      const shadowX = canvas.width * 0.5;
+      const shadowY = canvas.height * 0.78;
       const shadowRx = canvas.width * 0.35 * state.cameraScale;
       const shadowRy = 35 * state.cameraScale;
 
@@ -977,8 +757,8 @@ async function executePhotoSnap() {
       ctx.ellipse(shadowX, shadowY, shadowRx, shadowRy, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Dibujar modelo 3D en la posición fija en la habitación
-      ctx.drawImage(motoImg, drawOffsetX, drawOffsetY, canvas.width, canvas.height);
+      // Dibujar modelo 3D sobre la cámara
+      ctx.drawImage(motoImg, 0, 0, canvas.width, canvas.height);
 
       // 3. Banner fotográfico inferior tipo editorial automotriz
       const m = MOTOS[state.motoIdx];
@@ -1249,33 +1029,35 @@ function initEvents() {
     loadMoto((state.motoIdx + 1) % MOTOS.length);
   });
 
-  /* Botón fijar moto en el punto actual del piso */
-  if (el.arCamAnchorBtn) {
-    el.arCamAnchorBtn.addEventListener('click', () => {
-      setSpatialAnchor();
-    });
-  }
-
-  /* Toggle modo Espacio Fijo / Modo Libre */
-  if (el.toggleSpatialBtn) {
-    el.toggleSpatialBtn.addEventListener('click', toggleSpatialMode);
-  }
-
-  /* Botón girar 180 grados en cámara */
+  /* Botón girar 180 grados suave */
   if (el.arCamRotate180) {
     el.arCamRotate180.addEventListener('click', () => {
-      const nextAngle = (spatialState.manualOrbitDeg + 180) % 360;
-      setOrbitAngle(nextAngle);
+      smoothRotateTo(orbitState.targetDeg + 180);
     });
   }
 
-  /* Chips de ángulos 360° en cámara (Frente, Lado, Atrás) */
+  /* Chips de ángulos 360° en cámara (0° Frente, 90° Lado, 180° Atrás, 270° Lado) */
   document.querySelectorAll('.ar-orbit-chip').forEach(btn => {
     btn.addEventListener('click', e => {
       const deg = parseFloat(e.currentTarget.dataset.angle) || 0;
-      setOrbitAngle(deg);
+      smoothRotateTo(deg);
     });
   });
+
+  /* Sincronizar estado y chips si el usuario gira la moto arrastrando con el dedo */
+  if (el.cameraMv) {
+    el.cameraMv.addEventListener('camera-change', () => {
+      if (!orbitState.animId && typeof el.cameraMv.getCameraOrbit === 'function') {
+        const o = el.cameraMv.getCameraOrbit();
+        if (o && typeof o.theta === 'number') {
+          const deg = (o.theta * 180 / Math.PI) % 360;
+          orbitState.currentDeg = ((deg % 360) + 360) % 360;
+          orbitState.targetDeg = orbitState.currentDeg;
+          updateOrbitChipsUI(orbitState.currentDeg);
+        }
+      }
+    });
+  }
 
   /* Botones de Escala en Cámara */
   document.querySelectorAll('.ar-scale-btn').forEach(btn => {

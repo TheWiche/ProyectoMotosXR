@@ -376,7 +376,6 @@
 
         <div class="ar-cam-title-pill">
           <span id="arCamMotoNombre">AKT NKD 125</span>
-          <span id="spatialStatusDot" class="ar-cam-live-dot" title="Sensor espacial activo"></span>
         </div>
 
         <div style="display:flex; align-items:center; gap:8px;">
@@ -389,16 +388,7 @@
             <span id="arCamTimerBadge" class="ar-cam-timer-badge">0s</span>
           </button>
 
-          <!-- Botón fijar / anclar moto en este punto del suelo -->
-          <button id="arCamAnchorBtn" class="ar-cam-btn-pill" aria-label="Fijar moto aquí" title="Fijar moto en este punto del piso">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
-            </svg>
-            <span>Fijar en piso</span>
-          </button>
-
-          <!-- Botón girar 180 grados -->
+          <!-- Botón girar 180 grados suave -->
           <button id="arCamRotate180" class="ar-cam-btn-icon" aria-label="Girar 180°" title="Girar 180°">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-4.5-4.5M19.5 12l-4.5 4.5"/>
@@ -412,23 +402,16 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
         </svg>
-        <span id="arCamTipText">Toca el piso para ubicarla &middot; Camina alrededor para verla en 360°</span>
+        <span id="arCamTipText">Gira la moto suavemente con los botones o arrastrando con el dedo</span>
       </div>
 
       <!-- Barra inferior de la cámara -->
       <div class="ar-cam-bottom-bar">
-        <!-- Selector rápido de tamaño y modo sensor -->
-        <div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
-          <div class="ar-scale-selector">
-            <button class="ar-scale-btn" data-scale="0.7">0.7x</button>
-            <button class="ar-scale-btn active" data-scale="1.0">1:1 Real</button>
-            <button class="ar-scale-btn" data-scale="1.3">1.3x</button>
-          </div>
-
-          <button id="toggleSpatialBtn" class="ar-sensor-pill active" title="Girar automáticamente al caminar alrededor de la moto">
-            <span class="ar-gyro-indicator"></span>
-            <span>Giroscopio 360°</span>
-          </button>
+        <!-- Selector rápido de tamaño -->
+        <div class="ar-scale-selector">
+          <button class="ar-scale-btn" data-scale="0.7">0.7x</button>
+          <button class="ar-scale-btn active" data-scale="1.0">1:1 Real</button>
+          <button class="ar-scale-btn" data-scale="1.3">1.3x</button>
         </div>
 
         <!-- Barra de ángulos 360° para dar la vuelta a la moto -->
