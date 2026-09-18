@@ -1025,48 +1025,14 @@ body.ficha-is-open .wa-float-btn {
   z-index: 1;
 }
 
-/* Escenario espacial inercial — Cero transiciones CSS para 60fps puros */
+/* Escenario de la moto 3D centrado en cámara */
 .ar-spatial-stage {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   z-index: 2;
-  transform-origin: 50% 75%;
-  will-change: transform;
   pointer-events: auto;
-}
-
-/* Retícula interactiva de suelo para posicionar la moto */
-.ar-ground-reticle {
-  position: absolute;
-  bottom: 22%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 220px;
-  height: 90px;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.6;
-  transition: opacity 0.3s;
-}
-.reticle-ring {
-  position: absolute;
-  inset: 0;
-  border: 1.5px dashed var(--accent-ar);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(163, 230, 53, 0.3);
-}
-.reticle-pulse {
-  position: absolute;
-  inset: 15%;
-  background: radial-gradient(ellipse at center, rgba(163, 230, 53, 0.3) 0%, transparent 70%);
-  border-radius: 50%;
-  animation: pulse-reticle 2.2s infinite ease-in-out;
-}
-@keyframes pulse-reticle {
-  0%, 100% { transform: scale(0.9); opacity: 0.3; }
-  50% { transform: scale(1.08); opacity: 0.75; }
 }
 
 .ar-camera-model-wrap {
@@ -1078,7 +1044,7 @@ body.ficha-is-open .wa-float-btn {
   pointer-events: auto;
 }
 
-/* Sombra de suelo simulada para que la moto no flote en la cámara */
+/* Sombra de suelo simulada y sutil */
 .ar-floor-shadow {
   position: absolute;
   bottom: 22%;
@@ -1086,55 +1052,12 @@ body.ficha-is-open .wa-float-btn {
   transform: translateX(-50%);
   width: 75%;
   max-width: 320px;
-  height: 60px;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 75%);
+  height: 55px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0) 75%);
   border-radius: 50%;
   filter: blur(8px);
   pointer-events: none;
   z-index: 1;
-}
-
-/* Barra de órbita 360° para dar la vuelta a la moto */
-.ar-orbit-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--r-pill);
-  padding: 3px 6px;
-  max-width: 100%;
-}
-.ar-orbit-chip {
-  padding: 5px 11px;
-  background: transparent;
-  border: none;
-  border-radius: var(--r-pill);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
-}
-.ar-orbit-chip:active { transform: scale(0.94); }
-.ar-orbit-chip.active {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  font-weight: 700;
-}
-.ar-gyro-indicator {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
-  display: inline-block;
-  margin-right: 2px;
 }
 
 /* Flash de cámara blanco animado */
@@ -1150,54 +1073,6 @@ body.ficha-is-open .wa-float-btn {
 .camera-flash.hidden { display: none !important; }
 .camera-flash.fade { opacity: 0; }
 
-/* Botón fijar en piso pill */
-.ar-cam-btn-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 8px 14px;
-  background: rgba(163, 230, 53, 0.18);
-  border: 1.5px solid var(--accent-ar);
-  border-radius: var(--r-pill);
-  color: var(--accent-ar);
-  font-family: var(--font);
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all 0.18s;
-}
-.ar-cam-btn-pill:active {
-  transform: scale(0.94);
-  background: var(--accent-ar);
-  color: #000;
-}
-
-/* Toggle del sensor espacial */
-.ar-sensor-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--r-pill);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.18s;
-}
-.ar-sensor-pill.active {
-  border-color: #22c55e;
-  color: #4ade80;
-  background: rgba(34, 197, 94, 0.15);
-}
-
 .ar-camera-ui {
   position: absolute;
   inset: 0;
@@ -1205,7 +1080,7 @@ body.ficha-is-open .wa-float-btn {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: calc(14px + var(--safe-t)) calc(16px + var(--safe-r)) calc(20px + var(--safe-b)) calc(16px + var(--safe-l));
+  padding: calc(14px + var(--safe-t)) calc(16px + var(--safe-r)) calc(24px + var(--safe-b)) calc(16px + var(--safe-l));
   pointer-events: none;
 }
 
@@ -1219,8 +1094,8 @@ body.ficha-is-open .wa-float-btn {
 }
 
 .ar-cam-btn-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(8px);
@@ -1239,7 +1114,7 @@ body.ficha-is-open .wa-float-btn {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 16px;
+  padding: 8px 18px;
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -1251,15 +1126,6 @@ body.ficha-is-open .wa-float-btn {
   font-weight: 700;
   letter-spacing: -0.01em;
 }
-.ar-cam-live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px #22c55e;
-  animation: pulse-dot 1.8s infinite;
-}
-@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
 /* Guía tip central */
 .ar-cam-tip {
@@ -1274,7 +1140,7 @@ body.ficha-is-open .wa-float-btn {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--r-pill);
   color: #e2e8f0;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   pointer-events: none;
   opacity: 0.9;
@@ -1286,38 +1152,8 @@ body.ficha-is-open .wa-float-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
   width: 100%;
   pointer-events: auto;
-}
-
-.ar-scale-selector {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 3px;
-  border-radius: var(--r-pill);
-}
-.ar-scale-btn {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: var(--r-pill);
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.ar-scale-btn.active {
-  background: var(--accent-ar);
-  color: #000;
-  font-weight: 700;
 }
 
 /* Fila del obturador */
@@ -1326,12 +1162,12 @@ body.ficha-is-open .wa-float-btn {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 320px;
+  max-width: 290px;
 }
 
 .ar-cam-round-btn {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.75);
   backdrop-filter: blur(8px);
@@ -1347,8 +1183,8 @@ body.ficha-is-open .wa-float-btn {
 .ar-cam-round-btn:active { transform: scale(0.92); }
 
 .ar-shutter-btn {
-  width: 72px;
-  height: 72px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   border: 4px solid #fff;
   background: transparent;
@@ -1360,8 +1196,8 @@ body.ficha-is-open .wa-float-btn {
 }
 .ar-shutter-btn:active { transform: scale(0.92); }
 .ar-shutter-inner {
-  width: 54px;
-  height: 54px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: #fff;
   transition: background 0.15s, transform 0.1s;

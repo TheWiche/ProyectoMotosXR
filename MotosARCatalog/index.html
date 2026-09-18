@@ -320,8 +320,7 @@
   </div><!-- /#arChoiceModal -->
 
   <!-- ══════════════════════════════════════════
-       VISTA PANTALLA COMPLETA: CÁMARA AR UNIVERSAL
-       Con Anclaje Espacial en el Suelo (Giroscopio & Orientación Física)
+       VISTA PANTALLA COMPLETA: CÁMARA & FOTO (LIGERA Y OPTIMIZADA)
   ══════════════════════════════════════════ -->
   <div id="arCameraView" class="ar-camera-view hidden">
     <!-- Flash blanco animado al capturar foto -->
@@ -333,15 +332,8 @@
     <!-- Canvas oculto para composición fotográfica en alta resolución -->
     <canvas id="arCaptureCanvas" style="display:none;"></canvas>
 
-    <!-- Escenario espacial: anclado al piso físico -->
+    <!-- Escenario del modelo 3D optimizado -->
     <div id="arSpatialStage" class="ar-spatial-stage">
-      <!-- Retícula interactiva de suelo para ubicar la moto -->
-      <div id="arGroundReticle" class="ar-ground-reticle">
-        <div class="reticle-ring"></div>
-        <div class="reticle-pulse"></div>
-      </div>
-
-      <!-- Contenedor del modelo 3D sobre la cámara -->
       <div id="arCameraModelWrap" class="ar-camera-model-wrap">
         <!-- Sombra de suelo realista anclada a la base de la moto -->
         <div class="ar-floor-shadow" id="arFloorShadow"></div>
@@ -350,12 +342,12 @@
           id="cameraMv"
           touch-action="pan-y"
           camera-controls
-          shadow-intensity="1.5"
+          shadow-intensity="1.4"
           shadow-softness="0.7"
           environment-image="neutral"
-          exposure="1.25"
+          exposure="1.2"
           min-field-of-view="15deg"
-          max-field-of-view="75deg"
+          max-field-of-view="80deg"
           camera-target="0m 0.45m 0m"
           camera-orbit="0deg 78deg 2.6m"
           field-of-view="35deg"
@@ -364,11 +356,11 @@
       </div>
     </div>
 
-    <!-- UI superpuesta sobre la cámara -->
+    <!-- UI limpia y simplificada sobre la cámara -->
     <div class="ar-camera-ui">
-      <!-- Barra superior de la cámara -->
+      <!-- Barra superior: Cerrar · Nombre · Girar 180° -->
       <div class="ar-cam-top-bar">
-        <button id="arCamClose" class="ar-cam-btn-icon" aria-label="Salir de la cámara">
+        <button id="arCamClose" class="ar-cam-btn-icon" aria-label="Salir de la cámara" title="Cerrar cámara">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -376,88 +368,48 @@
 
         <div class="ar-cam-title-pill">
           <span id="arCamMotoNombre">AKT NKD 125</span>
-          <span id="spatialStatusDot" class="ar-cam-live-dot" title="Sensor espacial activo"></span>
         </div>
 
-        <div style="display:flex; align-items:center; gap:8px;">
-          <!-- Botón temporizador de foto (0s / 3s) -->
-          <button id="arCamTimerBtn" class="ar-cam-btn-icon" aria-label="Temporizador de foto" title="Temporizador de foto (0s / 3s)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
-              <circle cx="12" cy="12" r="9"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            <span id="arCamTimerBadge" class="ar-cam-timer-badge">0s</span>
-          </button>
-
-          <!-- Botón fijar / anclar moto en este punto del suelo -->
-          <button id="arCamAnchorBtn" class="ar-cam-btn-pill" aria-label="Fijar moto aquí" title="Fijar moto en este punto del piso">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
-            </svg>
-            <span>Fijar en piso</span>
-          </button>
-
-          <!-- Botón girar 180 grados -->
-          <button id="arCamRotate180" class="ar-cam-btn-icon" aria-label="Girar 180°" title="Girar 180°">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-4.5-4.5M19.5 12l-4.5 4.5"/>
-            </svg>
-          </button>
-        </div>
+        <button id="arCamRotate180" class="ar-cam-btn-icon" aria-label="Girar 180°" title="Girar moto al otro lado">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-4.5-4.5M19.5 12l-4.5 4.5"/>
+          </svg>
+        </button>
       </div>
 
-      <!-- Guía central para el usuario -->
+      <!-- Guía sutil para el usuario -->
       <div id="arCamTip" class="ar-cam-tip">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
         </svg>
-        <span id="arCamTipText">Toca el piso para ubicarla &middot; Camina alrededor para verla en 360°</span>
+        <span id="arCamTipText">Arrastra para girar &middot; Pellizca para cambiar tamaño</span>
       </div>
 
-      <!-- Barra inferior de la cámara -->
+      <!-- Barra inferior simplificada: Anterior · Foto · Siguiente -->
       <div class="ar-cam-bottom-bar">
-        <!-- Selector rápido de tamaño y modo sensor -->
-        <div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%;">
-          <div class="ar-scale-selector">
-            <button class="ar-scale-btn" data-scale="0.7">0.7x</button>
-            <button class="ar-scale-btn active" data-scale="1.0">1:1 Real</button>
-            <button class="ar-scale-btn" data-scale="1.3">1.3x</button>
-          </div>
-
-          <button id="toggleSpatialBtn" class="ar-sensor-pill active" title="Girar automáticamente al caminar alrededor de la moto">
-            <span class="ar-gyro-indicator"></span>
-            <span>Giroscopio 360°</span>
-          </button>
-        </div>
-
-        <!-- Barra de ángulos 360° para dar la vuelta a la moto -->
-        <div class="ar-orbit-bar" id="arOrbitBar">
-          <button class="ar-orbit-chip active" data-angle="0">0° Frente</button>
-          <button class="ar-orbit-chip" data-angle="90">90° Lado</button>
-          <button class="ar-orbit-chip" data-angle="180">180° Atrás</button>
-          <button class="ar-orbit-chip" data-angle="270">270° Lado</button>
-        </div>
-
-        <!-- Fila de controles principales: Cambiar moto / Obturador Foto -->
         <div class="ar-shutter-row">
           <!-- Botón anterior moto -->
-          <button id="arCamPrev" class="ar-cam-round-btn" aria-label="Anterior moto">
+          <button id="arCamPrev" class="ar-cam-round-btn" aria-label="Anterior moto" title="Anterior moto">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6"/>
             </svg>
           </button>
 
           <!-- Botón Obturador Foto (Cámara) -->
-          <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-            <button id="arCamCapture" class="ar-shutter-btn" aria-label="Tomar foto con la moto">
-              <span class="ar-shutter-inner"></span>
-            </button>
-            <span style="font-family:var(--font-mono); font-size:9px; font-weight:700; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.8); letter-spacing:0.05em;">FOTO</span>
-          </div>
+          <button id="arCamCapture" class="ar-shutter-btn" aria-label="Tomar foto con la moto" title="Tomar foto">
+            <span class="ar-shutter-inner"></span>
+          </button>
 
           <!-- Botón siguiente moto -->
-          <button id="arCamNext" class="ar-cam-round-btn" aria-label="Siguiente moto">
+          <button id="arCamNext" class="ar-cam-round-btn" aria-label="Siguiente moto" title="Siguiente moto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/>
             </svg>
