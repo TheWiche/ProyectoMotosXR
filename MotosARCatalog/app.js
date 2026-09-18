@@ -185,6 +185,12 @@ function bindEls() {
     arToast:            document.getElementById('arToast'),
     arToastMsg:         document.getElementById('arToastMsg'),
 
+    /* Modal Selector AR */
+    arChoiceModal:      document.getElementById('arChoiceModal'),
+    arChoiceClose:      document.getElementById('arChoiceClose'),
+    btnLaunchNativeAR:  document.getElementById('btnLaunchNativeAR'),
+    btnLaunchCameraAR:  document.getElementById('btnLaunchCameraAR'),
+
     /* Vista Cámara AR Universal con Anclaje Espacial */
     arCameraView:           document.getElementById('arCameraView'),
     arCameraFeed:           document.getElementById('arCameraFeed'),
@@ -621,30 +627,51 @@ function initCameraFloorInteractions() {
 }
 
 /* ══════════════════════════════════════════════
-   ACTIVAR REALIDAD AUMENTADA DIRECTA (100% DISPOSITIVOS)
+   SELECTOR DE MODO AR (Nativo 360° vs Cámara Web)
 ══════════════════════════════════════════════ */
-async function requestAR() {
-  // En Safari iOS 13+, DeviceOrientation requiere permiso explícito en un evento de usuario
-  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try {
-      const permission = await DeviceOrientationEvent.requestPermission();
-      if (permission === 'granted') {
-        console.log('Permiso de orientación concedido en iOS');
-      }
-    } catch (e) {
-      console.warn('Permiso de orientación en iOS:', e);
-    }
-  }
+function requestAR() {
+  openArChoiceModal();
+}
 
-  // Apertura directa e instantánea de la Cámara AR con anclaje universal
-  await startCameraAR();
+function openArChoiceModal() {
+  if (el.arChoiceModal) {
+    el.arChoiceModal.classList.remove('hidden');
+  }
+}
+
+function closeArChoiceModal() {
+  if (el.arChoiceModal) {
+    el.arChoiceModal.classList.add('hidden');
+  }
+}
+
+function launchNativeAR() {
+  closeArChoiceModal();
+
+  // Activar AR nativo en el elemento principal <model-viewer>
+  // En iPhone abre Apple ARKit Quick Look con detección de piso y órbita física 360°
+  // En Android abre Google Scene Viewer con ARCore
+  if (el.mv) {
+    try {
+      showARToast('Iniciando Realidad Aumentada nativa...');
+      el.mv.activateAR();
+    } catch (err) {
+      console.warn('activateAR falló, usando cámara alternativa:', err);
+      showARToast('Iniciando modo cámara alternativa...');
+      setTimeout(startCameraAR, 800);
+    }
+  } else {
+    startCameraAR();
+  }
 }
 
 function showARToast(msg) {
   const m = MOTOS[state.motoIdx];
-  el.arToastMsg.textContent = msg || `Iniciando Cámara AR en Vivo...`;
-  el.arToast.classList.remove('hidden');
-  setTimeout(() => el.arToast.classList.add('hidden'), 4000);
+  if (el.arToastMsg) el.arToastMsg.textContent = msg || `Iniciando Cámara AR en Vivo...`;
+  if (el.arToast) {
+    el.arToast.classList.remove('hidden');
+    setTimeout(() => el.arToast.classList.add('hidden'), 4000);
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -652,6 +679,7 @@ function showARToast(msg) {
    Funciona en el 100% de iPhones y Androids con cámara web
 ══════════════════════════════════════════════ */
 async function startCameraAR() {
+  closeArChoiceModal();
   const m = MOTOS[state.motoIdx];
 
   try {
@@ -1256,6 +1284,25 @@ function initEvents() {
     });
   });
 
+  /* Modal Selector AR */
+  if (el.arChoiceClose) {
+    el.arChoiceClose.addEventListener('click', closeArChoiceModal);
+  }
+  if (el.arChoiceModal) {
+    el.arChoiceModal.addEventListener('click', e => {
+      if (e.target === el.arChoiceModal) closeArChoiceModal();
+    });
+  }
+  if (el.btnLaunchNativeAR) {
+    el.btnLaunchNativeAR.addEventListener('click', launchNativeAR);
+  }
+  if (el.btnLaunchCameraAR) {
+    el.btnLaunchCameraAR.addEventListener('click', () => {
+      closeArChoiceModal();
+      startCameraAR();
+    });
+  }
+
   /* Modal / Sheet de Foto Capturada */
   el.photoModalClose.addEventListener('click', () => el.photoModal.classList.add('hidden'));
   el.photoRetakeBtn.addEventListener('click', () => el.photoModal.classList.add('hidden'));
@@ -1288,6 +1335,7 @@ function initEvents() {
   /* Navegación por teclado */
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      if (el.arChoiceModal && !el.arChoiceModal.classList.contains('hidden')) { closeArChoiceModal(); return; }
       if (!el.arCameraView.classList.contains('hidden')) { stopCameraAR(); return; }
       if (!el.photoModal.classList.contains('hidden')) { el.photoModal.classList.add('hidden'); return; }
       if (!el.qrModal.classList.contains('hidden')) { closeQRModal(); return; }

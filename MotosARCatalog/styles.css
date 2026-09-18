@@ -825,6 +825,124 @@ body.ficha-is-open .wa-float-btn {
 }
 .btn-primary:hover { opacity: 0.9; }
 
+/* ── Modal Selector AR (Nativo 360 vs Cámara) ────────────────────── */
+.ar-choice-box {
+  max-width: 440px;
+}
+.ar-choice-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.45;
+}
+.ar-choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ar-choice-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: inherit;
+  width: 100%;
+}
+.ar-choice-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+.ar-choice-card:active {
+  transform: scale(0.985);
+}
+.ar-choice-recommended {
+  background: rgba(163, 230, 53, 0.08);
+  border-color: var(--accent-ar);
+  box-shadow: 0 0 20px rgba(163, 230, 53, 0.12);
+}
+.ar-choice-recommended:hover {
+  background: rgba(163, 230, 53, 0.12);
+  border-color: #bef264;
+}
+.ar-choice-badge {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  background: var(--accent-ar);
+  color: #000;
+  border-radius: 999px;
+  margin-bottom: 2px;
+}
+.ar-choice-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.ar-choice-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ar-choice-icon-wrap.native-icon {
+  background: rgba(163, 230, 53, 0.2);
+  color: var(--accent-ar);
+}
+.ar-choice-icon-wrap.camera-icon {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+.ar-choice-info {
+  flex: 1;
+}
+.ar-choice-name {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.ar-choice-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+.ar-choice-desc strong {
+  color: var(--text);
+}
+.ar-choice-ios-tip {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  margin-top: 4px;
+}
+.ar-choice-ios-tip em {
+  color: var(--accent-ar);
+  font-style: normal;
+  font-weight: 700;
+}
+
 /* ── AR Toast ────────────────────────────────────────────────────── */
 .ar-toast {
   position: fixed;
