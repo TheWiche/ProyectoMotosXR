@@ -136,6 +136,7 @@ const state = {
   cameraTimerSec: 0,
   isCameraActive: false,
   isCapturing:    false,
+  isModelReady:   false,
   lastPhotoBlob:  null,
   lastPhotoUrl:   null,
 };
@@ -258,6 +259,28 @@ function motoBaseURL() {
 }
 
 /* ══════════════════════════════════════════════
+   ESTADO DINÁMICO DEL BOTÓN AR
+══════════════════════════════════════════════ */
+function setArButtonReady(isReady) {
+  state.isModelReady = isReady;
+  if (!el.arFloatBtn) return;
+  const textSpan = el.arFloatBtn.querySelector('.ar-float-text');
+  const ring = el.arFloatBtn.querySelector('.ar-float-ring');
+
+  if (isReady) {
+    el.arFloatBtn.removeAttribute('disabled');
+    el.arFloatBtn.classList.remove('is-loading');
+    if (textSpan) textSpan.textContent = 'Ver en mi espacio (AR)';
+    if (ring) ring.style.display = '';
+  } else {
+    el.arFloatBtn.setAttribute('disabled', 'true');
+    el.arFloatBtn.classList.add('is-loading');
+    if (textSpan) textSpan.textContent = 'Cargando modelo 3D…';
+    if (ring) ring.style.display = 'none';
+  }
+}
+
+/* ══════════════════════════════════════════════
    CARGAR MOTO
 ══════════════════════════════════════════════ */
 function loadMoto(idx) {
@@ -270,6 +293,7 @@ function loadMoto(idx) {
   document.documentElement.style.setProperty('--accent-ar', m.acento);
 
   /* Carga del modelo 3D principal */
+  setArButtonReady(false);
   clearTimeout(state.loadTimer);
   el.loadOverlay.classList.remove('hidden', 'fade-out');
   el.loadBar.style.width = '0%';
@@ -278,6 +302,7 @@ function loadMoto(idx) {
   el.mv.removeAttribute('src');
   requestAnimationFrame(() => {
     el.mv.setAttribute('src', m.glb);
+    el.mv.scale = '1.25 1.25 1.25';
   });
 
   /* Si la cámara AR está activa, sincronizar también el modelo de la cámara */
@@ -336,6 +361,7 @@ function buildSpecs(m) {
 
 function hideLoadOverlay() {
   clearTimeout(state.loadTimer);
+  setArButtonReady(true);
   el.loadOverlay.classList.add('fade-out');
   setTimeout(() => el.loadOverlay.classList.add('hidden'), 320);
 }
@@ -442,6 +468,7 @@ function smoothRotateTo(targetDeg) {
    SELECTOR DE MODO AR (Nativo 360° vs Cámara Web)
 ══════════════════════════════════════════════ */
 function requestAR() {
+  if (!state.isModelReady) return;
   openArChoiceModal();
 }
 
@@ -468,12 +495,11 @@ function launchNativeAR() {
       showARToast('Iniciando Realidad Aumentada nativa...');
       el.mv.activateAR();
     } catch (err) {
-      console.warn('activateAR falló, usando cámara alternativa:', err);
-      showARToast('Iniciando modo cámara alternativa...');
-      setTimeout(startCameraAR, 800);
+      console.warn('activateAR no disponible:', err);
+      showARToast('El visor nativo no está disponible. Puedes usar la opción de Cámara Web.');
     }
   } else {
-    startCameraAR();
+    showARToast('Visor 3D no inicializado.');
   }
 }
 
@@ -990,11 +1016,10 @@ function initModelViewerEvents() {
       </p>`;
   });
 
-  // Si Scene Viewer falla al lanzar AR, sugerir automáticamente la Cámara AR
+  // Notificar estado de Scene Viewer sin forzar apertura automática de cámara
   el.mv.addEventListener('ar-status', e => {
     if (e.detail.status === 'failed') {
-      showARToast('Google Scene Viewer no compatible en este móvil.');
-      setTimeout(() => startCameraAR(), 1200);
+      showARToast('Google Scene Viewer no compatible. Puedes usar el modo de Cámara Web.');
     }
   });
 

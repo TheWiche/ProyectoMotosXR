@@ -627,6 +627,26 @@ model-viewer {
 }
 .ar-float-btn:active { transform: translateX(-50%) scale(0.96); opacity: 0.9; }
 
+/* ── AR flotante inactivo / cargando ────────────────────────────── */
+.ar-float-btn.is-loading,
+.ar-float-btn:disabled {
+  background: rgba(23, 31, 51, 0.92);
+  color: #94a3b8;
+  border: 1px solid rgba(62, 72, 79, 0.7);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  animation: none;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.88;
+}
+.ar-float-btn.is-loading .ar-float-ring,
+.ar-float-btn:disabled .ar-float-ring {
+  display: none !important;
+}
+.ar-float-btn.is-loading .ar-float-icon {
+  animation: spin 1s linear infinite;
+}
+
 .ar-float-ring {
   position: absolute;
   inset: -4px;

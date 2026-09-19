@@ -162,22 +162,7 @@
       color: #38bdf8;
     }
 
-    /* ── AR button ── */
-    .ar-btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 5px 14px;
-      border-radius: 9999px;
-      border: 1px solid #38bdf8;
-      color: #38bdf8;
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.18s;
-    }
-    .ar-btn:hover { background: #38bdf8; color: #003351; }
+
 
     /* ── Panel divider ── */
     .divider {
@@ -468,7 +453,6 @@
           <span class="label-caps label-accent">Modelo 3D</span>
           <span class="label-caps label-muted" style="font-size:9px;">— arrastra para orbitar · scroll para zoom</span>
         </div>
-        <button class="ar-btn" id="arBtn">&#x2299; Ver en AR</button>
       </div>
 
       <!-- 3D box -->
@@ -594,7 +578,6 @@
   const angleBadge = document.getElementById('angleBadge');
   const frameLabel = document.getElementById('frameLabel');
   const modelV     = document.getElementById('modelViewer');
-  const arBtn      = document.getElementById('arBtn');
   const resetBtn   = document.getElementById('resetBtn');
   const dragHint   = document.getElementById('dragHint');
 
@@ -751,22 +734,7 @@
       '<span class="label-caps label-muted">Error al cargar el modelo</span>';
   });
 
-  // ─── AR button ───────────────────────────────────────────────────────────
-  arBtn.addEventListener('click', () => {
-    if (modelV.canActivateAR) {
-      modelV.activateAR();
-    } else {
-      const orig = arBtn.textContent;
-      arBtn.textContent = '\u26A0 HTTPS + movil requerido';
-      arBtn.style.borderColor = '#ffb4ab';
-      arBtn.style.color       = '#ffb4ab';
-      setTimeout(() => {
-        arBtn.textContent    = '\u2299 Ver en AR';
-        arBtn.style.borderColor = '#38bdf8';
-        arBtn.style.color       = '#38bdf8';
-      }, 2800);
-    }
-  });
+
 
   // ─── Reset camera ────────────────────────────────────────────────────────
   resetBtn.addEventListener('click', () => {
