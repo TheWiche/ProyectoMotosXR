@@ -343,20 +343,52 @@ function loadMoto(idx) {
 }
 
 function buildSpecs(m) {
-  const rows = [
-    ['Cilindraje',   m.cilindraje],
-    ['Potencia',     m.potencia],
-    ['Torque',       m.torque],
-    ['Transmisión',  m.transmision],
-    ['Peso neto',    m.peso],
-    ['Tanque',       m.tanque],
+  const specs = [
+    {
+      label: 'Potencia',
+      val: m.potencia,
+      icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>'
+    },
+    {
+      label: 'Torque',
+      val: m.torque,
+      icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+    },
+    {
+      label: 'Cilindraje',
+      val: m.cilindraje,
+      icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>'
+    },
+    {
+      label: 'Tanque',
+      val: m.tanque,
+      icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>'
+    },
+    {
+      label: 'Peso neto',
+      val: m.peso,
+      icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>'
+    },
+    {
+      label: 'Transmisión',
+      val: m.transmision,
+      icon: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>'
+    },
   ];
-  return rows.map(([k, v]) =>
-    `<div class="spec-row">
-       <span class="spec-label">${k}</span>
-       <span class="spec-value">${v}</span>
-     </div>`
-  ).join('');
+
+  return `
+    <div class="specs-grid">
+      ${specs.map(s => `
+        <div class="spec-card">
+          <div class="spec-card-header">
+            <span class="spec-card-icon">${s.icon}</span>
+            <span class="spec-card-label">${s.label}</span>
+          </div>
+          <span class="spec-card-value">${s.val}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 function hideLoadOverlay() {
@@ -951,7 +983,10 @@ function toggleFicha(force) {
   el.fichaPanel.classList.toggle('open', open);
   el.fichaExpanded.setAttribute('aria-hidden', String(!open));
   document.body.classList.toggle('ficha-is-open', open);
+  try { if (navigator.vibrate) navigator.vibrate(15); } catch (_) {}
 }
+
+
 
 /* ══════════════════════════════════════════════
    QR MODAL
