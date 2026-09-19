@@ -26,99 +26,105 @@ const CONFIG = {
 ══════════════════════════════════════════════ */
 const MOTOS = [
   {
-    id:         'akt-nkd',
-    nombre:     'AKT NKD 125',
-    marca:      'AKT',
-    modelo:     'NKD 125',
-    cilindraje: '125 cc',
-    potencia:   '11 HP @ 8.000 rpm',
-    torque:     '8.8 Nm @ 6.000 rpm',
-    transmision:'5 velocidades',
-    peso:       '118 kg',
-    tanque:     '13.5 L',
-    precio:     5990000,
-    financiado: 'Desde $112.000/mes',
-    glb:        '../Akt%20Nkd/nkd.glb',
-    poster:     '../Akt%20Nkd/3_dark.png',
-    acento:     '#a3e635',   /* lime-400 */
-    tags:       ['Ciudad', 'Café Racer', 'Sport'],
-    descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. Suspensión delantera telescópica y freno de disco para un manejo dinámico y seguro en ciudad.',
+    id:          'tvs-raider',
+    nombre:      'TVS Raider 125',
+    marca:       'TVS',
+    modelo:      'Raider 125',
+    cilindraje:  '124.8 cc',
+    potencia:    '11.4 HP @ 7.500 rpm',
+    torque:      '11.2 Nm @ 6.000 rpm',
+    transmision: '5 velocidades',
+    peso:        '123 kg',
+    tanque:      '10 L',
+    precio:      6290000,
+    financiado:  'Desde $118.000/mes',
+    glb:         '../Tvs%20raider/Raider2.glb',
+    poster:      '../Tvs%20raider/3_dark.png',
+    acento:      '#a78bfa',   /* violet-400 */
+    tags:        ['Sport', 'Premium', '125cc', 'Modelo 3D Activo'],
+    descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel de instrumentos LCD, faros LED y freno de disco delantero. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    disponible:  true,
+    scale:       '1 1 1',
   },
   {
-    id:         'bajaj-boxer',
-    nombre:     'Bajaj Boxer 100',
-    marca:      'Bajaj',
-    modelo:     'Boxer 100',
-    cilindraje: '100 cc',
-    potencia:   '8.2 HP @ 7.500 rpm',
-    torque:     '8.05 Nm @ 5.000 rpm',
-    transmision:'4 velocidades',
-    peso:       '113 kg',
-    tanque:     '15 L',
-    precio:     4490000,
-    financiado: 'Desde $84.000/mes',
-    glb:        '../Bajaj%20Boxer/boxer.glb',
-    poster:     '../Bajaj%20Boxer/3_dark.png',
-    acento:     '#fb923c',   /* orange-400 */
-    tags:       ['Trabajo', 'Campo', 'Economía'],
-    descripcion: 'La moto más robusta del segmento. Reconocida por su durabilidad extrema y bajo costo de mantenimiento, ideal para trabajo en ciudad y zonas rurales.',
+    id:          'akt-nkd',
+    nombre:      'AKT NKD 125',
+    marca:       'AKT',
+    modelo:      'NKD 125',
+    cilindraje:  '125 cc',
+    potencia:    '11 HP @ 8.000 rpm',
+    torque:      '8.8 Nm @ 6.000 rpm',
+    transmision: '5 velocidades',
+    peso:        '118 kg',
+    tanque:      '13.5 L',
+    precio:      5990000,
+    financiado:  'Desde $112.000/mes',
+    glb:         '../Akt%20Nkd/nkd.glb',
+    poster:      '../Akt%20Nkd/3_dark.png',
+    acento:      '#a3e635',   /* lime-400 */
+    tags:        ['Próximamente', 'Ciudad', 'Café Racer'],
+    descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
+    disponible:  false,
   },
   {
-    id:         'hero-eco',
-    nombre:     'Hero Eco Deluxe',
-    marca:      'Hero',
-    modelo:     'Eco Deluxe',
-    cilindraje: '97.2 cc',
-    potencia:   '7.9 HP @ 8.000 rpm',
-    torque:     '7.55 Nm @ 5.000 rpm',
-    transmision:'4 velocidades',
-    peso:       '112 kg',
-    tanque:     '10.5 L',
-    precio:     4190000,
-    financiado: 'Desde $79.000/mes',
-    glb:        '../Hero%20eco%20deluxe/hero.glb',
-    poster:     '../Hero%20eco%20deluxe/3_dark.png',
-    acento:     '#38bdf8',   /* sky-400 */
-    tags:       ['Trabajo', 'Ahorro', 'Ciudad'],
-    descripcion: 'La moto de trabajo más vendida en Colombia. Consumo de combustible excepcional (60+ km/L) y costo de mantenimiento mínimo. Confiable día a día.',
+    id:          'pulsar-ns200',
+    nombre:      'Pulsar NS 200',
+    marca:       'Bajaj',
+    modelo:      'Pulsar NS 200',
+    cilindraje:  '199.5 cc',
+    potencia:    '24.5 HP @ 9.750 rpm',
+    torque:      '18.74 Nm @ 8.000 rpm',
+    transmision: '6 velocidades',
+    peso:        '156 kg',
+    tanque:      '12 L',
+    precio:      12490000,
+    financiado:  'Desde $234.000/mes',
+    glb:         '../Pulsar%20ns%20200/ns200.glb',
+    poster:      '../Pulsar%20ns%20200/3_dark.png',
+    acento:      '#f43f5e',   /* rose-500 */
+    tags:        ['Próximamente', 'Sport', 'Performance'],
+    descripcion: 'Naked sport con motor DTS-Fi de triple chispa e inyección electrónica. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
+    disponible:  false,
   },
   {
-    id:         'pulsar-ns200',
-    nombre:     'Pulsar NS 200',
-    marca:      'Bajaj',
-    modelo:     'Pulsar NS 200',
-    cilindraje: '199.5 cc',
-    potencia:   '24.5 HP @ 9.750 rpm',
-    torque:     '18.74 Nm @ 8.000 rpm',
-    transmision:'6 velocidades',
-    peso:       '156 kg',
-    tanque:     '12 L',
-    precio:     12490000,
-    financiado: 'Desde $234.000/mes',
-    glb:        '../Pulsar%20ns%20200/ns200.glb',
-    poster:     '../Pulsar%20ns%20200/3_dark.png',
-    acento:     '#f43f5e',   /* rose-500 */
-    tags:       ['Sport', 'Performance', '200cc'],
-    descripcion: 'Naked sport con motor DTS-Fi de triple chispa e inyección electrónica. La experiencia de conducción más emocionante del segmento 200cc en Colombia.',
+    id:          'bajaj-boxer',
+    nombre:      'Bajaj Boxer 100',
+    marca:       'Bajaj',
+    modelo:      'Boxer 100',
+    cilindraje:  '100 cc',
+    potencia:    '8.2 HP @ 7.500 rpm',
+    torque:      '8.05 Nm @ 5.000 rpm',
+    transmision: '4 velocidades',
+    peso:        '113 kg',
+    tanque:      '15 L',
+    precio:      4490000,
+    financiado:  'Desde $84.000/mes',
+    glb:         '../Bajaj%20Boxer/boxer.glb',
+    poster:      '../Bajaj%20Boxer/3_dark.png',
+    acento:      '#fb923c',   /* orange-400 */
+    tags:        ['Próximamente', 'Trabajo', 'Campo'],
+    descripcion: 'La moto más robusta del segmento. Reconocida por su durabilidad extrema. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
+    disponible:  false,
   },
   {
-    id:         'tvs-raider',
-    nombre:     'TVS Raider 125',
-    marca:      'TVS',
-    modelo:     'Raider 125',
-    cilindraje: '124.8 cc',
-    potencia:   '11.4 HP @ 7.500 rpm',
-    torque:     '11.2 Nm @ 6.000 rpm',
-    transmision:'5 velocidades',
-    peso:       '123 kg',
-    tanque:     '10 L',
-    precio:     6290000,
-    financiado: 'Desde $118.000/mes',
-    glb:        '../Tvs%20raider/Raider.glb',
-    poster:     '../Tvs%20raider/3_dark.png',
-    acento:     '#a78bfa',   /* violet-400 */
-    tags:       ['Sport', 'Premium', '125cc'],
-    descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel de instrumentos LCD, faros LED y freno de disco delantero. La más avanzada del segmento.',
+    id:          'hero-eco',
+    nombre:      'Hero Eco Deluxe',
+    marca:       'Hero',
+    modelo:      'Eco Deluxe',
+    cilindraje:  '97.2 cc',
+    potencia:    '7.9 HP @ 8.000 rpm',
+    torque:      '7.55 Nm @ 5.000 rpm',
+    transmision: '4 velocidades',
+    peso:        '112 kg',
+    tanque:      '10.5 L',
+    precio:      4190000,
+    financiado:  'Desde $79.000/mes',
+    glb:         '../Hero%20eco%20deluxe/hero.glb',
+    poster:      '../Hero%20eco%20deluxe/3_dark.png',
+    acento:      '#38bdf8',   /* sky-400 */
+    tags:        ['Próximamente', 'Ahorro', 'Ciudad'],
+    descripcion: 'La moto de trabajo más vendida en Colombia. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
+    disponible:  false,
   },
 ];
 
@@ -153,6 +159,9 @@ function bindEls() {
     accentBar:              document.getElementById('accentBar'),
     loadOverlay:            document.getElementById('loadOverlay'),
     loadBar:                document.getElementById('loadBar'),
+    modelStatusPill:        document.getElementById('modelStatusPill'),
+    modelStatusText:        document.getElementById('modelStatusText'),
+    modelStatusDot:         document.getElementById('modelStatusDot'),
     viewerTip:              document.getElementById('viewerTip'),
     navPrev:                document.getElementById('navPrev'),
     navNext:                document.getElementById('navNext'),
@@ -267,6 +276,15 @@ function setArButtonReady(isReady) {
   const textSpan = el.arFloatBtn.querySelector('.ar-float-text');
   const ring = el.arFloatBtn.querySelector('.ar-float-ring');
 
+  const m = MOTOS[state.motoIdx];
+  if (m && !m.disponible) {
+    el.arFloatBtn.setAttribute('disabled', 'true');
+    el.arFloatBtn.classList.remove('is-loading');
+    if (textSpan) textSpan.textContent = 'Próximamente en AR';
+    if (ring) ring.style.display = 'none';
+    return;
+  }
+
   if (isReady) {
     el.arFloatBtn.removeAttribute('disabled');
     el.arFloatBtn.classList.remove('is-loading');
@@ -292,6 +310,21 @@ function loadMoto(idx) {
   el.accentBar.style.background = m.acento;
   document.documentElement.style.setProperty('--accent-ar', m.acento);
 
+  /* Pill de estado del modelo */
+  if (el.modelStatusPill && el.modelStatusText && el.modelStatusDot) {
+    if (!m.disponible) {
+      el.modelStatusPill.classList.remove('hidden', 'status-active');
+      el.modelStatusPill.classList.add('status-soon');
+      el.modelStatusText.textContent = 'Modelo en preparación · Próximamente disponible';
+      el.modelStatusDot.style.background = '#f59e0b';
+    } else {
+      el.modelStatusPill.classList.remove('hidden', 'status-soon');
+      el.modelStatusPill.classList.add('status-active');
+      el.modelStatusText.textContent = '✨ Modelo 3D HD Activo · Escala 1:1';
+      el.modelStatusDot.style.background = m.acento;
+    }
+  }
+
   /* Carga del modelo 3D principal */
   setArButtonReady(false);
   clearTimeout(state.loadTimer);
@@ -302,7 +335,7 @@ function loadMoto(idx) {
   el.mv.removeAttribute('src');
   requestAnimationFrame(() => {
     el.mv.setAttribute('src', m.glb);
-    el.mv.scale = '1.25 1.25 1.25';
+    el.mv.scale = m.scale || '1 1 1';
   });
 
   /* Si la cámara AR está activa, sincronizar también el modelo de la cámara */
@@ -418,13 +451,14 @@ function refreshWhatsApp(m) {
 function buildSelector() {
   el.selector.innerHTML = MOTOS.map((m, i) =>
     `<button
-       class="moto-pill${i === state.motoIdx ? ' active' : ''}"
+       class="moto-pill${i === state.motoIdx ? ' active' : ''}${!m.disponible ? ' pill-disabled' : ''}"
        data-idx="${i}"
        style="--acento:${m.acento}"
-       aria-label="${m.nombre}"
+       aria-label="${m.nombre}${!m.disponible ? ' (Próximamente)' : ''}"
      >
        <span class="pill-marca">${m.marca}</span>
        <span class="pill-modelo">${m.modelo}</span>
+       ${!m.disponible ? '<span class="pill-badge-soon">Próx.</span>' : '<span class="pill-badge-live">3D HD</span>'}
      </button>`
   ).join('');
 
@@ -500,6 +534,11 @@ function smoothRotateTo(targetDeg) {
    SELECTOR DE MODO AR (Nativo 360° vs Cámara Web)
 ══════════════════════════════════════════════ */
 function requestAR() {
+  const m = MOTOS[state.motoIdx];
+  if (m && !m.disponible) {
+    showARToast('Este modelo estará disponible próximamente en 3D y AR.');
+    return;
+  }
   if (!state.isModelReady) return;
   openArChoiceModal();
 }

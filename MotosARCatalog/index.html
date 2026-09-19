@@ -79,6 +79,12 @@
         <span>Arriba/abajo/lados para girar &middot; 2 dedos para zoom</span>
       </div>
 
+      <!-- Badge indicador de disponibilidad del modelo -->
+      <div id="modelStatusPill" class="model-status-pill hidden">
+        <span id="modelStatusDot" class="status-indicator-dot"></span>
+        <span id="modelStatusText">✨ Modelo 3D HD Activo · Escala 1:1</span>
+      </div>
+
       <!-- Loading overlay -->
       <div id="loadOverlay" class="load-overlay">
         <div class="load-spinner"></div>
@@ -114,7 +120,7 @@
         ar
         ar-modes="webxr scene-viewer quick-look"
         ar-scale="auto"
-        scale="1.25 1.25 1.25"
+        scale="1 1 1"
         ar-placement="floor"
         camera-controls
         touch-action="none"
