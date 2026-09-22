@@ -38,8 +38,9 @@ const MOTOS = [
     tanque:      '10 L',
     precio:      6290000,
     financiado:  'Desde $118.000/mes',
-    glb:         '../Tvs%20raider/Raider2.glb',
-    poster:      '../Tvs%20raider/3_dark.png',
+    glb:         '/models/tvs-raider.glb',
+    usdz:        '/models/tvs-raider.usdz',
+    poster:      '/posters/tvs-raider.png',
     acento:      '#a78bfa',   /* violet-400 */
     tags:        ['Sport', 'Premium', '125cc', '3D HD'],
     descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel LCD, faros LED y freno de disco delantero. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
@@ -59,8 +60,9 @@ const MOTOS = [
     tanque:      '13.5 L',
     precio:      5990000,
     financiado:  'Desde $112.000/mes',
-    glb:         '../Akt%20Nkd/nkd2.glb',
-    poster:      '../Akt%20Nkd/3_dark.png',
+    glb:         '/models/akt-nkd.glb',
+    usdz:        '/models/akt-nkd.usdz',
+    poster:      '/posters/akt-nkd.png',
     acento:      '#a3e635',   /* lime-400 */
     tags:        ['Ciudad', 'Café Racer', '125cc', '3D HD'],
     descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. Ligera, ágil y económica. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
@@ -80,8 +82,9 @@ const MOTOS = [
     tanque:      '12 L',
     precio:      12490000,
     financiado:  'Desde $234.000/mes',
-    glb:         '../Pulsar%20ns%20200/ns200_2.glb',
-    poster:      '../Pulsar%20ns%20200/3_dark.png',
+    glb:         '/models/pulsar-ns200.glb',
+    usdz:        '/models/pulsar-ns200.usdz',
+    poster:      '/posters/pulsar-ns200.png',
     acento:      '#f43f5e',   /* rose-500 */
     tags:        ['Sport', 'Performance', '200cc', '3D HD'],
     descripcion: 'Naked sport con motor DTS-Fi de triple chispa y refrigeración líquida. Máxima potencia y respuesta. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
@@ -101,8 +104,9 @@ const MOTOS = [
     tanque:      '15 L',
     precio:      4490000,
     financiado:  'Desde $84.000/mes',
-    glb:         '../Bajaj%20Boxer/boxer2.glb',
-    poster:      '../Bajaj%20Boxer/3_dark.png',
+    glb:         '/models/bajaj-boxer.glb',
+    usdz:        '/models/bajaj-boxer.usdz',
+    poster:      '/posters/bajaj-boxer.png',
     acento:      '#fb923c',   /* orange-400 */
     tags:        ['Trabajo', 'Campo', '100cc', '3D HD'],
     descripcion: 'La moto más robusta y guerrera del país. Durabilidad legendaria y mínimo consumo de combustible. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
@@ -122,8 +126,9 @@ const MOTOS = [
     tanque:      '10.5 L',
     precio:      4190000,
     financiado:  'Desde $79.000/mes',
-    glb:         '../Hero%20eco%20deluxe/hero2.glb',
-    poster:      '../Hero%20eco%20deluxe/3_dark.png',
+    glb:         '/models/hero-eco.glb',
+    usdz:        '/models/hero-eco.usdz',
+    poster:      '/posters/hero-eco.png',
     acento:      '#38bdf8',   /* sky-400 */
     tags:        ['Ahorro', 'Ciudad', '100cc', '3D HD'],
     descripcion: 'La campeona de la economía con tecnología i3S de ahorro de combustible. Confortable y confiable. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
@@ -337,6 +342,11 @@ function loadMoto(idx) {
 
   el.mv.setAttribute('poster', m.poster);
   el.mv.removeAttribute('src');
+  if (m.usdz) {
+    el.mv.setAttribute('ios-src', m.usdz);
+  } else {
+    el.mv.removeAttribute('ios-src');
+  }
   requestAnimationFrame(() => {
     el.mv.setAttribute('src', m.glb);
     el.mv.scale = m.scale || '1 1 1';
@@ -346,6 +356,7 @@ function loadMoto(idx) {
   if (state.isCameraActive && el.cameraMv) {
     el.arCamMotoNombre.textContent = m.nombre;
     el.cameraMv.setAttribute('src', m.glb);
+    if (m.usdz) el.cameraMv.setAttribute('ios-src', m.usdz);
   }
 
   /* Timeout de seguridad en caso de redes móviles lentas */
@@ -661,6 +672,7 @@ async function startCameraAR() {
 
     // Cargar modelo 3D en el visor de cámara transparente adaptado al piso
     el.cameraMv.setAttribute('src', m.glb);
+    if (m.usdz) el.cameraMv.setAttribute('ios-src', m.usdz);
     el.cameraMv.scale = m.scale || '1 1 1';
     el.cameraMv.cameraTarget = '0m 0.45m 0m';
     el.cameraMv.cameraOrbit = '0deg 78deg 2.6m';

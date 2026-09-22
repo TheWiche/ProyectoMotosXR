@@ -1,0 +1,22 @@
+{
+  "name": "proyecto-motos-xr",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Catálogo WebXR interactivo 3D y Realidad Aumentada para motocicletas en Colombia",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "organize:assets": "node scripts/organize_assets.mjs",
+    "generate:posters": "python scripts/generate_posters.py",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "@google/model-viewer": "^4.0.0"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.0",
+    "vite": "^6.2.0"
+  }
+}

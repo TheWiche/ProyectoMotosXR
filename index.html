@@ -511,50 +511,56 @@
   // ─── BIKE DATA ────────────────────────────────────────────────────────────
   const BIKES = [
     {
-      id:    'akt-nkd',
-      name:  'AKT NKD',
-      folder:'Akt Nkd',
-      glb:   'nkd2.glb',
-      ext:   '_dark.png',
-      count:  8,
+      id:     'akt-nkd',
+      name:   'AKT NKD',
+      folder: 'Akt Nkd',
+      glb:    'models/akt-nkd.glb',
+      frames: 'frames/akt-nkd',
+      ext:    '_dark.png',
+      count:   8,
     },
     {
-      id:    'bajaj-boxer',
-      name:  'BAJAJ BOXER',
-      folder:'Bajaj Boxer',
-      glb:   'boxer2.glb',
-      ext:   '_dark.png',
-      count:  8,
+      id:     'bajaj-boxer',
+      name:   'BAJAJ BOXER',
+      folder: 'Bajaj Boxer',
+      glb:    'models/bajaj-boxer.glb',
+      frames: 'frames/bajaj-boxer',
+      ext:    '_dark.png',
+      count:   8,
     },
     {
-      id:    'hero-eco',
-      name:  'HERO ECO',
-      folder:'Hero eco deluxe',
-      glb:   'hero2.glb',
-      ext:   '_dark.png',        // generado por normalize_backgrounds.py
-      count:  8,
+      id:     'hero-eco',
+      name:   'HERO ECO',
+      folder: 'Hero eco deluxe',
+      glb:    'models/hero-eco.glb',
+      frames: 'frames/hero-eco',
+      ext:    '_dark.png',
+      count:   8,
     },
     {
-      id:    'pulsar-ns200',
-      name:  'PULSAR NS200',
-      folder:'Pulsar ns 200',
-      glb:   'ns200_2.glb',
-      ext:   '_dark.png',
-      count:  8,
+      id:     'pulsar-ns200',
+      name:   'PULSAR NS200',
+      folder: 'Pulsar ns 200',
+      glb:    'models/pulsar-ns200.glb',
+      frames: 'frames/pulsar-ns200',
+      ext:    '_dark.png',
+      count:   8,
     },
     {
-      id:    'tvs-raider',
-      name:  'TVS RAIDER',
-      folder:'Tvs raider',
-      glb:   'Raider2.glb',
-      ext:   '_dark.png',
-      count:  8,
+      id:     'tvs-raider',
+      name:   'TVS RAIDER',
+      folder: 'Tvs raider',
+      glb:    'models/tvs-raider.glb',
+      frames: 'frames/tvs-raider',
+      ext:    '_dark.png',
+      count:   8,
     },
   ];
 
   // frame path helper
   function frameSrc(bike, n) {
-    return encodeURI(bike.folder + '/' + n + bike.ext);
+    const dir = bike.frames || bike.folder;
+    return encodeURI(dir + '/' + n + bike.ext);
   }
 
   // ─── STATE ───────────────────────────────────────────────────────────────
@@ -628,7 +634,7 @@
     const bike = BIKES[idx];
 
     // Load 3D model
-    modelV.src = encodeURI(bike.folder + '/' + bike.glb);
+    modelV.src = bike.glb;
 
     // Preload 360 frames
     await preload(idx);

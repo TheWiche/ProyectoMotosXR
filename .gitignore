@@ -30,11 +30,14 @@ desktop.ini
 # Gemini/AI workspace
 .gemini/
 
-# Node (por si se añade después)
+# Node
 node_modules/
 .vercel/
+dist/
+temp/
 
 # Binaries
 *.exe
+
 
 

@@ -1,35 +1,60 @@
 {
   "version": 2,
+  "cleanUrls": true,
   "headers": [
+    {
+      "source": "/models/(.*)\\.glb",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf-binary" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/models/(.*)\\.usdz",
+      "headers": [
+        { "key": "Content-Type", "value": "model/vnd.usdz+zip" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
     {
       "source": "/(.*)\\.glb",
       "headers": [
-        { "key": "Content-Type",                "value": "model/gltf-binary" },
+        { "key": "Content-Type", "value": "model/gltf-binary" },
         { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Cache-Control",               "value": "public, max-age=86400" }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "/(.*)\\.gltf",
+      "source": "/(.*)\\.usdz",
       "headers": [
-        { "key": "Content-Type",                "value": "model/gltf+json" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
+        { "key": "Content-Type", "value": "model/vnd.usdz+zip" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "/(.*)\\.webp",
+      "source": "/posters/(.*)",
       "headers": [
-        { "key": "Content-Type", "value": "image/webp" },
-        { "key": "Cache-Control","value": "public, max-age=86400" }
+        { "key": "Content-Type", "value": "image/png" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/frames/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "image/png" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/MotosARCatalog/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
-  ],
-  "cleanUrls": true
+  ]
 }
-
