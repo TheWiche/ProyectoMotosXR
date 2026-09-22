@@ -136,6 +136,7 @@
         reveal="auto"
         loading="eager"
       >
+        <button id="mvArSlotBtn" slot="ar-button" style="display:none;" aria-hidden="true"></button>
       </model-viewer>
 
     </section><!-- /#viewerArea -->
@@ -355,7 +356,7 @@
 
         <model-viewer
           id="cameraMv"
-          touch-action="pan-y"
+          touch-action="none"
           camera-controls
           shadow-intensity="1.5"
           shadow-softness="0.7"

@@ -41,8 +41,8 @@ const MOTOS = [
     glb:         '../Tvs%20raider/Raider2.glb',
     poster:      '../Tvs%20raider/3_dark.png',
     acento:      '#a78bfa',   /* violet-400 */
-    tags:        ['Sport', 'Premium', '125cc', 'Modelo 3D Activo'],
-    descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel de instrumentos LCD, faros LED y freno de disco delantero. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    tags:        ['Sport', 'Premium', '125cc', '3D HD'],
+    descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel LCD, faros LED y freno de disco delantero. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
     disponible:  true,
     scale:       '1 1 1',
   },
@@ -59,12 +59,13 @@ const MOTOS = [
     tanque:      '13.5 L',
     precio:      5990000,
     financiado:  'Desde $112.000/mes',
-    glb:         '../Akt%20Nkd/nkd.glb',
+    glb:         '../Akt%20Nkd/nkd2.glb',
     poster:      '../Akt%20Nkd/3_dark.png',
     acento:      '#a3e635',   /* lime-400 */
-    tags:        ['Próximamente', 'Ciudad', 'Café Racer'],
-    descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
-    disponible:  false,
+    tags:        ['Ciudad', 'Café Racer', '125cc', '3D HD'],
+    descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. Ligera, ágil y económica. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    disponible:  true,
+    scale:       '1 1 1',
   },
   {
     id:          'pulsar-ns200',
@@ -79,12 +80,13 @@ const MOTOS = [
     tanque:      '12 L',
     precio:      12490000,
     financiado:  'Desde $234.000/mes',
-    glb:         '../Pulsar%20ns%20200/ns200.glb',
+    glb:         '../Pulsar%20ns%20200/ns200_2.glb',
     poster:      '../Pulsar%20ns%20200/3_dark.png',
     acento:      '#f43f5e',   /* rose-500 */
-    tags:        ['Próximamente', 'Sport', 'Performance'],
-    descripcion: 'Naked sport con motor DTS-Fi de triple chispa e inyección electrónica. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
-    disponible:  false,
+    tags:        ['Sport', 'Performance', '200cc', '3D HD'],
+    descripcion: 'Naked sport con motor DTS-Fi de triple chispa y refrigeración líquida. Máxima potencia y respuesta. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    disponible:  true,
+    scale:       '1 1 1',
   },
   {
     id:          'bajaj-boxer',
@@ -99,12 +101,13 @@ const MOTOS = [
     tanque:      '15 L',
     precio:      4490000,
     financiado:  'Desde $84.000/mes',
-    glb:         '../Bajaj%20Boxer/boxer.glb',
+    glb:         '../Bajaj%20Boxer/boxer2.glb',
     poster:      '../Bajaj%20Boxer/3_dark.png',
     acento:      '#fb923c',   /* orange-400 */
-    tags:        ['Próximamente', 'Trabajo', 'Campo'],
-    descripcion: 'La moto más robusta del segmento. Reconocida por su durabilidad extrema. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
-    disponible:  false,
+    tags:        ['Trabajo', 'Campo', '100cc', '3D HD'],
+    descripcion: 'La moto más robusta y guerrera del país. Durabilidad legendaria y mínimo consumo de combustible. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    disponible:  true,
+    scale:       '1 1 1',
   },
   {
     id:          'hero-eco',
@@ -119,12 +122,13 @@ const MOTOS = [
     tanque:      '10.5 L',
     precio:      4190000,
     financiado:  'Desde $79.000/mes',
-    glb:         '../Hero%20eco%20deluxe/hero.glb',
+    glb:         '../Hero%20eco%20deluxe/hero2.glb',
     poster:      '../Hero%20eco%20deluxe/3_dark.png',
     acento:      '#38bdf8',   /* sky-400 */
-    tags:        ['Próximamente', 'Ahorro', 'Ciudad'],
-    descripcion: 'La moto de trabajo más vendida en Colombia. (Modelo 3D en preparación · Próximamente disponible en Realidad Aumentada).',
-    disponible:  false,
+    tags:        ['Ahorro', 'Ciudad', '100cc', '3D HD'],
+    descripcion: 'La campeona de la economía con tecnología i3S de ahorro de combustible. Confortable y confiable. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    disponible:  true,
+    scale:       '1 1 1',
   },
 ];
 
@@ -563,8 +567,20 @@ function launchNativeAR() {
   // En Android abre Google Scene Viewer con ARCore
   if (el.mv) {
     try {
-      showARToast('Iniciando Realidad Aumentada nativa...');
-      el.mv.activateAR();
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        showARToast('Preparando Realidad Aumentada para iPhone... (se abrirá en unos segundos)');
+      } else {
+        showARToast('Iniciando Realidad Aumentada nativa...');
+      }
+
+      // En iOS Safari el click sobre el botón de slot AR conserva la cadena de confianza del evento del usuario
+      const slotBtn = document.getElementById('mvArSlotBtn');
+      if (slotBtn) {
+        slotBtn.click();
+      } else {
+        el.mv.activateAR();
+      }
     } catch (err) {
       console.warn('activateAR no disponible:', err);
       showARToast('El visor nativo no está disponible. Puedes usar la opción de Cámara Web.');
@@ -587,27 +603,55 @@ function showARToast(msg) {
    CÁMARA AR UNIVERSAL (WebAR Passthrough)
    Funciona en el 100% de iPhones y Androids con cámara web
 ══════════════════════════════════════════════ */
+function unlockAudioOnIOS() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume();
+    }
+  } catch (_) {}
+}
+
 async function startCameraAR() {
   closeArChoiceModal();
   const m = MOTOS[state.motoIdx];
 
-  try {
-    // Solicitar cámara trasera (environment) de alta resolución
-    const constraints = {
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-      audio: false,
-    };
+  // Desbloquear audio en iOS Safari mediante el toque directo del usuario
+  unlockAudioOnIOS();
 
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  // Pausar el visor 3D principal para liberar VRAM y GPU en iOS Safari
+  if (el.mv) {
+    try { el.mv.pause(); } catch (_) {}
+  }
+
+  try {
+    let stream = null;
+    const constraintsList = [
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+      { video: { facingMode: { ideal: 'environment' } }, audio: false },
+      { video: true, audio: false }
+    ];
+
+    for (const constraints of constraintsList) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (stream) break;
+      } catch (e) {
+        console.warn('Constraint no soportado, probando siguiente opción:', constraints, e);
+      }
+    }
+
+    if (!stream) {
+      throw new Error('No se pudo acceder a la cámara trasera.');
+    }
+
     state.cameraStream = stream;
 
     // Configurar video para iOS Safari y Android
     el.arCameraFeed.setAttribute('playsinline', '');
     el.arCameraFeed.setAttribute('webkit-playsinline', '');
+    el.arCameraFeed.muted = true;
+    el.arCameraFeed.playsInline = true;
     el.arCameraFeed.srcObject = stream;
     await el.arCameraFeed.play();
 
@@ -617,6 +661,7 @@ async function startCameraAR() {
 
     // Cargar modelo 3D en el visor de cámara transparente adaptado al piso
     el.cameraMv.setAttribute('src', m.glb);
+    el.cameraMv.scale = m.scale || '1 1 1';
     el.cameraMv.cameraTarget = '0m 0.45m 0m';
     el.cameraMv.cameraOrbit = '0deg 78deg 2.6m';
     el.cameraMv.fieldOfView = '35deg';
@@ -635,6 +680,9 @@ async function startCameraAR() {
 
   } catch (err) {
     console.warn('Error accediendo a la cámara:', err);
+    if (el.mv) {
+      try { el.mv.play(); } catch (_) {}
+    }
     alert('Para ver la moto en tu espacio real, permite el acceso a la cámara en el navegador.');
   }
 }
@@ -653,6 +701,11 @@ function stopCameraAR() {
   state.isCameraActive = false;
   el.arCameraView.classList.add('hidden');
   el.arCameraFeed.srcObject = null;
+
+  // Reanudar el visor 3D principal del fondo
+  if (el.mv) {
+    try { el.mv.play(); } catch (_) {}
+  }
 }
 
 function setCameraScale(scale) {
