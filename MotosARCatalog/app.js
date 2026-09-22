@@ -203,12 +203,17 @@ function bindEls() {
     printBtn:           document.getElementById('printBtn'),
     arToast:            document.getElementById('arToast'),
     arToastMsg:         document.getElementById('arToastMsg'),
+    arToastTitle:       document.getElementById('arToastTitle'),
+    arToastIcon:        document.getElementById('arToastIcon'),
 
     /* Modal Selector AR */
-    arChoiceModal:      document.getElementById('arChoiceModal'),
-    arChoiceClose:      document.getElementById('arChoiceClose'),
-    btnLaunchNativeAR:  document.getElementById('btnLaunchNativeAR'),
-    btnLaunchCameraAR:  document.getElementById('btnLaunchCameraAR'),
+    arChoiceModal:          document.getElementById('arChoiceModal'),
+    arChoiceClose:          document.getElementById('arChoiceClose'),
+    btnLaunchNativeAR:      document.getElementById('btnLaunchNativeAR'),
+    btnLaunchNativeARThumb: document.getElementById('btnLaunchNativeARThumb'),
+    arChoiceIosTip:         document.getElementById('arChoiceIosTip'),
+    btnLaunchCameraAR:      document.getElementById('btnLaunchCameraAR'),
+
 
     /* Vista Cámara AR Universal con Anclaje Espacial */
     arCameraView:           document.getElementById('arCameraView'),
@@ -351,6 +356,20 @@ function loadMoto(idx) {
     el.mv.setAttribute('src', m.glb);
     el.mv.scale = m.scale || '1 1 1';
   });
+
+  /* Configurar enlace nativo para Apple Quick Look (iOS) */
+  if (el.btnLaunchNativeAR) {
+    if (m.usdz) {
+      const fullUsdz = window.location.origin + m.usdz;
+      el.btnLaunchNativeAR.setAttribute('href', fullUsdz);
+      el.btnLaunchNativeAR.setAttribute('rel', 'ar');
+    } else {
+      el.btnLaunchNativeAR.removeAttribute('href');
+    }
+    if (el.btnLaunchNativeARThumb) {
+      el.btnLaunchNativeARThumb.src = window.location.origin + m.poster;
+    }
+  }
 
   /* Si la cámara AR está activa, sincronizar también el modelo de la cámara */
   if (state.isCameraActive && el.cameraMv) {
@@ -570,43 +589,78 @@ function closeArChoiceModal() {
   }
 }
 
-function launchNativeAR() {
+function launchNativeAR(e) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isInApp = /FBAN|FBAV|Instagram|WhatsApp|Line/i.test(navigator.userAgent);
+
+  if (isIOS) {
+    closeArChoiceModal();
+
+    if (isInApp) {
+      showARToast(
+        'Si Quick Look no se abre en WhatsApp, toca (···) arriba y elige "Abrir en Safari", o usa el Modo Cámara.',
+        'Consejo para iPhone',
+        'info'
+      );
+    } else {
+      showARToast('Iniciando Apple Quick Look (360° en piso real)...', 'Realidad Aumentada', 'info');
+    }
+
+    // En iOS dejamos que el evento de clic nativo sobre <a rel="ar" href="..."> proceda para que WebKit lance Quick Look
+    return;
+  }
+
+  // En Android u otros navegadores:
+  if (e && e.preventDefault) e.preventDefault();
   closeArChoiceModal();
 
-  // Activar AR nativo en el elemento principal <model-viewer>
-  // En iPhone abre Apple ARKit Quick Look con detección de piso y órbita física 360°
-  // En Android abre Google Scene Viewer con ARCore
   if (el.mv) {
     try {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (isIOS) {
-        showARToast('Preparando Realidad Aumentada para iPhone... (se abrirá en unos segundos)');
-      } else {
-        showARToast('Iniciando Realidad Aumentada nativa...');
-      }
-
-      // En iOS Safari el click sobre el botón de slot AR conserva la cadena de confianza del evento del usuario
-      const slotBtn = document.getElementById('mvArSlotBtn');
-      if (slotBtn) {
-        slotBtn.click();
-      } else {
-        el.mv.activateAR();
-      }
+      showARToast('Iniciando Realidad Aumentada en tu espacio...', 'Realidad Aumentada', 'info');
+      el.mv.activateAR();
     } catch (err) {
       console.warn('activateAR no disponible:', err);
-      showARToast('El visor nativo no está disponible. Puedes usar la opción de Cámara Web.');
+      showARToast('El visor nativo no está disponible. Puedes usar el Modo Cámara Web.', 'Aviso', 'warning');
     }
   } else {
-    showARToast('Visor 3D no inicializado.');
+    showARToast('Visor 3D no inicializado.', 'Aviso', 'warning');
   }
 }
 
-function showARToast(msg) {
-  const m = MOTOS[state.motoIdx];
-  if (el.arToastMsg) el.arToastMsg.textContent = msg || `Iniciando Cámara AR en Vivo...`;
+function showARToast(msg, title = 'Realidad Aumentada', type = 'info') {
+  if (el.arToastTitle) el.arToastTitle.textContent = title;
+  if (el.arToastMsg) el.arToastMsg.textContent = msg || 'Iniciando Realidad Aumentada…';
+
+  if (el.arToastIcon) {
+    if (type === 'warning') {
+      el.arToastIcon.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:#fbbf24;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+      `;
+    } else if (type === 'success') {
+      el.arToastIcon.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:#4ade80;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      `;
+    } else {
+      el.arToastIcon.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:#38bdf8;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+        </svg>
+      `;
+    }
+  }
+
   if (el.arToast) {
+    el.arToast.classList.remove('hidden', 'toast-info', 'toast-warning', 'toast-success');
+    el.arToast.classList.add(`toast-${type}`);
+    clearTimeout(state.toastTimer);
     el.arToast.classList.remove('hidden');
-    setTimeout(() => el.arToast.classList.add('hidden'), 4000);
+    state.toastTimer = setTimeout(() => {
+      el.arToast.classList.add('hidden');
+    }, type === 'warning' ? 5000 : 4000);
   }
 }
 

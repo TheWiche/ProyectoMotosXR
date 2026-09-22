@@ -284,7 +284,8 @@
       <div class="ar-choice-options">
 
         <!-- Opción 1: Realidad Aumentada Nativa (Fija en el piso / 360° Real) -->
-        <button id="btnLaunchNativeAR" class="ar-choice-card ar-choice-recommended">
+        <a id="btnLaunchNativeAR" class="ar-choice-card ar-choice-recommended" rel="ar" href="#" style="text-decoration:none; color:inherit;">
+          <img id="btnLaunchNativeARThumb" src="" alt="Thumbnail AR" style="display:none;" />
           <div class="ar-choice-badge">⭐ Recomendado · 360° en Piso Real</div>
           <div class="ar-choice-row">
             <div class="ar-choice-icon-wrap native-icon">
@@ -299,10 +300,10 @@
               </p>
             </div>
           </div>
-          <div class="ar-choice-ios-tip">
-            📱 <strong>En iPhone:</strong> Selecciona la pestaña <em>[ AR ]</em> arriba y mueve suavemente el teléfono apuntando al piso iluminado.
+          <div class="ar-choice-ios-tip" id="arChoiceIosTip">
+            📱 <strong>En iPhone:</strong> Si abres desde WhatsApp o Instagram, pulsa <strong>Compartir / (···)</strong> arriba y elige <strong>"Abrir en Safari"</strong> para activar Quick Look con un toque.
           </div>
-        </button>
+        </a>
 
         <!-- Opción 2: Modo Cámara Web Universal & Foto -->
         <button id="btnLaunchCameraAR" class="ar-choice-card">
@@ -498,14 +499,16 @@
     </div>
   </div>
 
-  <!-- AR no disponible toast -->
+  <!-- AR Toast Dinámico -->
   <div id="arToast" class="ar-toast hidden" role="alert">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
-    </svg>
+    <div id="arToastIcon" class="ar-toast-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+      </svg>
+    </div>
     <div>
-      <p class="ar-toast-title">AR Nativo no disponible</p>
-      <p class="ar-toast-sub" id="arToastMsg">Iniciando Cámara AR en Vivo...</p>
+      <p class="ar-toast-title" id="arToastTitle">Realidad Aumentada</p>
+      <p class="ar-toast-sub" id="arToastMsg">Iniciando…</p>
     </div>
   </div>
 
