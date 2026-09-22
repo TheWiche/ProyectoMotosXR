@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "build": "node -e \"const {execSync} = require('child_process'); try { console.log(execSync('git lfs --version').toString()); execSync('git lfs pull', {stdio: 'inherit'}); } catch(e) { console.error('LFS:', e.message); }\" && vite build",
     "preview": "vite preview",
     "organize:assets": "node scripts/organize_assets.mjs",
     "generate:posters": "python scripts/generate_posters.py",
