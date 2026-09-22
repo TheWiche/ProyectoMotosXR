@@ -80,3 +80,4 @@ for (const m of MAPPINGS) {
 }
 
 console.log('Estructura de public/ organizada exitosamente.');
+
