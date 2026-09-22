@@ -107,7 +107,16 @@ def optimize_usdz(usdz_path):
                     
         compact_usdc_path = os.path.join(tmpdir, 'compacted_' + usdc_name)
         stage.Export(compact_usdc_path)
+        del stage
         os.replace(compact_usdc_path, usdc_path)
+
+        # 2b. Corregir rutas de texturas para que sean estrictamente relativas (./archivo.jpg)
+        layer = Sdf.Layer.FindOrOpen(usdc_path)
+        if layer:
+            UsdUtils.ModifyAssetPaths(layer, lambda p: './' + os.path.basename(p))
+            layer.Save()
+            del layer
+
         
         # 3. Optimizar texturas (> 2048px se redimensionan a max 2048)
         for fname in os.listdir(tmpdir):
