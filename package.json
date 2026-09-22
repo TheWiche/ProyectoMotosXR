@@ -5,8 +5,7 @@
   "description": "Catálogo WebXR interactivo 3D y Realidad Aumentada para motocicletas en Colombia",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "node -e \"const {execSync} = require('child_process'); try { console.log(execSync('git lfs --version').toString()); execSync('git lfs pull', {stdio: 'inherit'}); } catch(e) { console.error('LFS:', e.message); }\" && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "organize:assets": "node scripts/organize_assets.mjs",
     "generate:posters": "python scripts/generate_posters.py",
