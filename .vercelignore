@@ -1,0 +1,13 @@
+# Vercel Deployment Exclusions
+# Ignora carpetas raw y scripts locales que no forman parte del runtime web
+Akt Nkd/
+Bajaj Boxer/
+Hero eco deluxe/
+Pulsar ns 200/
+Tvs raider/
+scripts/
+temp/
+tests/
+*.py
+*.blend
+*.blend1
