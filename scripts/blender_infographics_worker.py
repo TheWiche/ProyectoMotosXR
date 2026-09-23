@@ -35,14 +35,8 @@ def main():
     # 2. Import clean GLB
     bpy.ops.import_scene.gltf(filepath=glb_in)
     
-    # 3. Decimate body mesh to ensure USDZ < 30 MB for Safari
-    for obj in bpy.context.scene.objects:
-        if obj.type == 'MESH' and len(obj.data.vertices) > 5000:
-            mod = obj.modifiers.new(name='Decimate_Body', type='DECIMATE')
-            mod.ratio = 0.45
-            bpy.context.view_layer.objects.active = obj
-            bpy.ops.object.modifier_apply(modifier='Decimate_Body')
-            print(f"Decimated {obj.name} to {len(obj.data.vertices)} vertices")
+    # 3. Preserve 100% original geometry (NO DECIMATION to avoid distortion)
+    print("Malla original preservada al 100% sin decimation.")
             
     # 4. Create Emissive Material for pointer lines and pins
     pin_mat = bpy.data.materials.new(name='Infographic_Neon')

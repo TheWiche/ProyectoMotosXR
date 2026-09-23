@@ -41,5 +41,9 @@ temp_test/
 # Binaries
 *.exe
 
-
-
+# Raw user downloads (>100 MB) - processed models live in public/models/
+/Akt Nkd/
+/Bajaj Boxer/
+/Hero eco deluxe/
+/Pulsar ns 200/
+/Tvs raider/

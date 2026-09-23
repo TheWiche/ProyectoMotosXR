@@ -16,7 +16,7 @@ import zipfile
 import struct
 import binascii
 from PIL import Image
-from pxr import Usd, UsdGeom
+from pxr import Usd, UsdGeom, Sdf, UsdUtils
 
 class AlignedUSDZWriter:
     """Escribe archivos .usdz con compresion STORED y alineacion exacta de 64 bytes."""
