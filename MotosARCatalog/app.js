@@ -226,6 +226,18 @@ function bindEls() {
     copyUrlBtn:         document.getElementById('copyUrlBtn'),
     modeBtnAr:          document.getElementById('modeBtnAr'),
     modeBtnClean:       document.getElementById('modeBtnClean'),
+    viewerControlsBar:  document.getElementById('viewerControlsBar'),
+    btnToggleRotate:    document.getElementById('btnToggleRotate'),
+    btnRotateIconPause: document.getElementById('btnRotateIconPause'),
+    btnRotateIconPlay:  document.getElementById('btnRotateIconPlay'),
+    btnRotateLabel:     document.getElementById('btnRotateLabel'),
+    btnResetView:       document.getElementById('btnResetView'),
+    btnToggleLabels:    document.getElementById('btnToggleLabels'),
+    labelToggleText:    document.getElementById('labelToggleText'),
+    btnFullscreen:      document.getElementById('btnFullscreen'),
+    fsIconEnter:        document.getElementById('fsIconEnter'),
+    fsIconExit:         document.getElementById('fsIconExit'),
+    fsLabel:            document.getElementById('fsLabel'),
     arToast:            document.getElementById('arToast'),
     arToastMsg:         document.getElementById('arToastMsg'),
     arToastTitle:       document.getElementById('arToastTitle'),
@@ -379,6 +391,12 @@ function loadMoto(idx) {
     el.modeBtnAr.classList.toggle('active', currentMode === 'ar');
     el.modeBtnClean.classList.toggle('active', currentMode === 'clean');
   }
+  if (el.btnToggleLabels && el.labelToggleText) {
+    const isAr = (currentMode === 'ar');
+    el.btnToggleLabels.classList.toggle('active-gold', isAr);
+    el.labelToggleText.textContent = isAr ? 'Ocultar etiquetas' : 'Mostrar etiquetas';
+    el.btnToggleLabels.title = isAr ? 'Ocultar etiquetas y ver moto limpia' : 'Mostrar fichas técnicas 3D';
+  }
 
   el.mv.setAttribute('poster', m.poster);
   if (targetUsdz) {
@@ -429,6 +447,12 @@ function setViewModelMode(mode) {
   if (el.modeBtnAr && el.modeBtnClean) {
     el.modeBtnAr.classList.toggle('active', mode === 'ar');
     el.modeBtnClean.classList.toggle('active', mode === 'clean');
+  }
+  if (el.btnToggleLabels && el.labelToggleText) {
+    const isAr = (mode === 'ar');
+    el.btnToggleLabels.classList.toggle('active-gold', isAr);
+    el.labelToggleText.textContent = isAr ? 'Ocultar etiquetas' : 'Mostrar etiquetas';
+    el.btnToggleLabels.title = isAr ? 'Ocultar etiquetas y ver moto limpia' : 'Mostrar fichas técnicas 3D';
   }
 
   // Breve micro-loader de feedback
@@ -1528,6 +1552,77 @@ function initEvents() {
   /* Switch Dual de Modo AR / 3D */
   if (el.modeBtnAr) el.modeBtnAr.addEventListener('click', () => setViewModelMode('ar'));
   if (el.modeBtnClean) el.modeBtnClean.addEventListener('click', () => setViewModelMode('clean'));
+
+  /* ── Barra HUD de controles dentro del visor 3D ── */
+  if (el.btnToggleRotate) {
+    el.btnToggleRotate.addEventListener('click', () => {
+      const isAuto = el.mv.hasAttribute('auto-rotate');
+      if (isAuto) {
+        el.mv.removeAttribute('auto-rotate');
+        if (el.btnRotateIconPause) el.btnRotateIconPause.classList.add('hidden');
+        if (el.btnRotateIconPlay) el.btnRotateIconPlay.classList.remove('hidden');
+        if (el.btnRotateLabel) el.btnRotateLabel.textContent = 'Reanudar rotación';
+        el.btnToggleRotate.title = 'Reanudar rotación automática';
+        showARToast('⏸ Rotación pausada');
+      } else {
+        el.mv.setAttribute('auto-rotate', '');
+        if (el.btnRotateIconPause) el.btnRotateIconPause.classList.remove('hidden');
+        if (el.btnRotateIconPlay) el.btnRotateIconPlay.classList.add('hidden');
+        if (el.btnRotateLabel) el.btnRotateLabel.textContent = 'Pausar rotación';
+        el.btnToggleRotate.title = 'Pausar rotación automática';
+        showARToast('▶ Rotación automática activada');
+      }
+    });
+  }
+
+  if (el.btnResetView) {
+    el.btnResetView.addEventListener('click', () => {
+      el.mv.cameraOrbit = 'auto auto auto';
+      el.mv.cameraTarget = 'auto auto auto';
+      el.mv.fieldOfView = 'auto';
+      try {
+        if (typeof el.mv.resetTurntableRotation === 'function') {
+          el.mv.resetTurntableRotation(0);
+        }
+      } catch (_) {}
+      showARToast('↺ Posición inicial restablecida');
+    });
+  }
+
+  if (el.btnToggleLabels) {
+    el.btnToggleLabels.addEventListener('click', () => {
+      const nextMode = state.arMode === 'ar' ? 'clean' : 'ar';
+      setViewModelMode(nextMode);
+    });
+  }
+
+  if (el.btnFullscreen) {
+    el.btnFullscreen.addEventListener('click', () => {
+      const targetArea = document.getElementById('viewerArea') || el.mv;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (targetArea.requestFullscreen) {
+          targetArea.requestFullscreen();
+        } else if (targetArea.webkitRequestFullscreen) {
+          targetArea.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    });
+
+    const updateFullscreenState = () => {
+      const isFullscreen = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (el.fsIconEnter) el.fsIconEnter.classList.toggle('hidden', isFullscreen);
+      if (el.fsIconExit) el.fsIconExit.classList.toggle('hidden', !isFullscreen);
+      if (el.fsLabel) el.fsLabel.textContent = isFullscreen ? 'Salir' : 'Pantalla completa';
+    };
+    document.addEventListener('fullscreenchange', updateFullscreenState);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+  }
 
   /* Navegación por teclado */
   document.addEventListener('keydown', e => {

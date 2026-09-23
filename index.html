@@ -261,6 +261,75 @@
       letter-spacing: 0.04em;
     }
 
+    /* ── Barra HUD de controles dentro del visor 3D ── */
+    .viewer-controls-bar {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(11, 19, 38, 0.82);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 6px 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      max-width: calc(100% - 24px);
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      pointer-events: auto;
+    }
+    .viewer-controls-bar::-webkit-scrollbar { display: none; }
+    .viewer-ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(15, 23, 42, 0.88);
+      color: #cbd5e1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+    }
+    .viewer-ctrl-btn:hover {
+      background: rgba(30, 41, 59, 0.95);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+    .viewer-ctrl-btn:active {
+      transform: translateY(0);
+    }
+    .viewer-ctrl-btn.active-gold {
+      border-color: #f59e0b;
+      color: #fde047;
+      background: rgba(245, 158, 11, 0.14);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+    }
+    .viewer-ctrl-btn.active-gold:hover {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: #fbbf24;
+      color: #ffffff;
+    }
+    @media (max-width: 640px) {
+      .viewer-ctrl-btn {
+        padding: 5px 9px;
+        font-size: 10px;
+        gap: 5px;
+      }
+    }
+
     /* ── Mobile Responsive Optimizations ── */
     @media (max-width: 768px) {
       header {
@@ -456,22 +525,11 @@
           <span class="label-caps label-accent">Modelo 3D</span>
           <span class="label-caps label-muted" style="font-size:9px;">— arrastra para orbitar · scroll para zoom</span>
         </div>
-
-        <!-- Switch Dual de Modo AR / 3D -->
-        <div class="flex items-center bg-[#171f33] p-1 rounded-full border border-[#3e484f] shadow-inner">
-          <button id="toggle3dAr" class="px-3 py-1 rounded-full text-[11px] font-mono font-bold transition-all bg-[#38bdf8] text-[#0b1326] flex items-center gap-1.5 shadow-sm" title="Mostrar fichas técnicas 3D flotantes">
-            <span>⚡</span>
-            <span>Fichas 3D</span>
-          </button>
-          <button id="toggle3dClean" class="px-3 py-1 rounded-full text-[11px] font-mono font-bold transition-all text-[#bdc8d1] hover:text-white flex items-center gap-1.5" title="Mostrar moto limpia sin etiquetas">
-            <span>✨</span>
-            <span>Moto Limpia</span>
-          </button>
-        </div>
       </div>
 
       <!-- 3D box -->
       <div
+        id="viewer3dBox"
         class="flex-1 relative rounded-2xl overflow-hidden"
         style="
           background:#0b1326;
@@ -500,24 +558,48 @@
           loading="eager"
         ></model-viewer>
 
-        <!-- 3D bottom hint -->
-        <div
-          style="
-            position:absolute; bottom:12px; left:14px;
-            display:flex; align-items:center; gap:6px;
-            opacity:0.45; pointer-events:none;
-          "
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#87929a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-          </svg>
-          <span class="label-caps label-muted" style="font-size:9px;">Drag to orbit &middot; Scroll to zoom</span>
+        <!-- Barra flotante de controles dentro del visor 3D (estilo nativo HUD) -->
+        <div id="viewerControlsBar3D" class="viewer-controls-bar" aria-label="Controles del visor 3D">
+          <button id="btnToggleRotate3D" class="viewer-ctrl-btn" title="Pausar rotación automática" aria-label="Pausar rotación">
+            <svg id="btnRotateIconPause3D" class="ctrl-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+            <svg id="btnRotateIconPlay3D" class="ctrl-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span id="btnRotateLabel3D">Pausar rotación</span>
+          </button>
+
+          <button id="btnResetView3D" class="viewer-ctrl-btn" title="Restablecer posición inicial de la cámara" aria-label="Restablecer vista">
+            <svg class="ctrl-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            <span>Restablecer</span>
+          </button>
+
+          <button id="btnToggleLabels3D" class="viewer-ctrl-btn active-gold" title="Alternar entre fichas 3D y moto limpia" aria-label="Alternar etiquetas">
+            <svg class="ctrl-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="7" y="7" width="10" height="10" rx="1.5"/>
+              <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+            </svg>
+            <span id="labelToggleText3D">Ocultar etiquetas</span>
+          </button>
+
+          <button id="btnFullscreen3D" class="viewer-ctrl-btn" title="Pantalla completa" aria-label="Pantalla completa">
+            <svg id="fsIconEnter3D" class="ctrl-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+            <svg id="fsIconExit3D" class="ctrl-icon hidden" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 14h6m0 0v6m0-6L3 21m17-7h-6m0 0v6m0-6l7 7M10 4v6m0 0H4m6 0L3 3m10 7h6m-6 0V4m0 6l7-7"/>
+            </svg>
+            <span id="fsLabel3D">Pantalla completa</span>
+          </button>
         </div>
       </div>
 
-      <!-- Bottom Actions: Reset camera + Ver en AR -->
-      <div class="flex-shrink-0 flex items-center justify-between gap-3 px-1">
-        <button class="ghost-btn" id="resetBtn">&#8635; Resetear cámara</button>
+      <!-- Bottom Actions: Ver en AR -->
+      <div class="flex-shrink-0 flex items-center justify-end gap-3 px-1">
         <button id="btnOpenArModal" class="flex items-center gap-2 px-4 py-1.5 rounded-full font-grotesk font-bold text-xs bg-sky-400 hover:bg-sky-300 text-slate-950 transition-all shadow-md hover:scale-105" title="Ver en Realidad Aumentada 1:1">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316Z"/>
@@ -768,14 +850,13 @@
   // ─── DUAL MODE 3D / AR ──────────────────────────────────────────────────
   function set3DMode(mode) {
     mode3D = mode;
-    const toggleAr = document.getElementById('toggle3dAr');
-    const toggleClean = document.getElementById('toggle3dClean');
-    if (mode === 'ar') {
-      toggleAr.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold transition-all bg-[#38bdf8] text-[#0b1326] flex items-center gap-1.5 shadow-sm';
-      toggleClean.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold transition-all text-[#bdc8d1] hover:text-white flex items-center gap-1.5';
-    } else {
-      toggleClean.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold transition-all bg-[#38bdf8] text-[#0b1326] flex items-center gap-1.5 shadow-sm';
-      toggleAr.className = 'px-3 py-1 rounded-full text-[11px] font-mono font-bold transition-all text-[#bdc8d1] hover:text-white flex items-center gap-1.5';
+    const btnToggleLabels = document.getElementById('btnToggleLabels3D');
+    const labelText = document.getElementById('labelToggleText3D');
+    if (btnToggleLabels && labelText) {
+      const isAr = (mode === 'ar');
+      btnToggleLabels.classList.toggle('active-gold', isAr);
+      labelText.textContent = isAr ? 'Ocultar etiquetas' : 'Mostrar etiquetas';
+      btnToggleLabels.title = isAr ? 'Ocultar etiquetas y ver moto limpia' : 'Mostrar fichas técnicas 3D';
     }
     const bike = BIKES[activeBike];
     const targetGlb = (mode === 'ar' ? bike.arGlb : bike.cleanGlb) || bike.glb;
@@ -929,12 +1010,74 @@
 
 
 
-  // ─── Dual mode & AR Modal listeners ──────────────────────────────────────
-  const btnToggleAr = document.getElementById('toggle3dAr');
-  const btnToggleClean = document.getElementById('toggle3dClean');
-  if (btnToggleAr) btnToggleAr.addEventListener('click', () => set3DMode('ar'));
-  if (btnToggleClean) btnToggleClean.addEventListener('click', () => set3DMode('clean'));
+  // ─── HUD 3D Controls (Dentro del visor) ───────────────────────────────────
+  const btnToggleRotate3D = document.getElementById('btnToggleRotate3D');
+  const iconPause3D = document.getElementById('btnRotateIconPause3D');
+  const iconPlay3D = document.getElementById('btnRotateIconPlay3D');
+  const labelRotate3D = document.getElementById('btnRotateLabel3D');
+  if (btnToggleRotate3D) {
+    btnToggleRotate3D.addEventListener('click', () => {
+      const isAuto = modelV.hasAttribute('auto-rotate');
+      if (isAuto) {
+        modelV.removeAttribute('auto-rotate');
+        if (iconPause3D) iconPause3D.classList.add('hidden');
+        if (iconPlay3D) iconPlay3D.classList.remove('hidden');
+        if (labelRotate3D) labelRotate3D.textContent = 'Reanudar rotación';
+        btnToggleRotate3D.title = 'Reanudar rotación automática';
+      } else {
+        modelV.setAttribute('auto-rotate', '');
+        if (iconPause3D) iconPause3D.classList.remove('hidden');
+        if (iconPlay3D) iconPlay3D.classList.add('hidden');
+        if (labelRotate3D) labelRotate3D.textContent = 'Pausar rotación';
+        btnToggleRotate3D.title = 'Pausar rotación automática';
+      }
+    });
+  }
 
+  const btnResetView3D = document.getElementById('btnResetView3D');
+  if (btnResetView3D) {
+    btnResetView3D.addEventListener('click', () => {
+      modelV.cameraOrbit  = 'auto auto auto';
+      modelV.cameraTarget = 'auto auto auto';
+      modelV.fieldOfView  = 'auto';
+      try { modelV.resetTurntableRotation(0); } catch(_) {}
+    });
+  }
+
+  const btnToggleLabels3D = document.getElementById('btnToggleLabels3D');
+  if (btnToggleLabels3D) {
+    btnToggleLabels3D.addEventListener('click', () => {
+      set3DMode(mode3D === 'ar' ? 'clean' : 'ar');
+    });
+  }
+
+  const btnFullscreen3D = document.getElementById('btnFullscreen3D');
+  const fsEnter3D = document.getElementById('fsIconEnter3D');
+  const fsExit3D = document.getElementById('fsIconExit3D');
+  const fsLabel3D = document.getElementById('fsLabel3D');
+  if (btnFullscreen3D) {
+    btnFullscreen3D.addEventListener('click', () => {
+      const targetBox = document.getElementById('viewer3dBox') || modelV;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (targetBox.requestFullscreen) targetBox.requestFullscreen();
+        else if (targetBox.webkitRequestFullscreen) targetBox.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    });
+
+    const updateFsState = () => {
+      const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+      if (fsEnter3D) fsEnter3D.classList.toggle('hidden', isFs);
+      if (fsExit3D) fsExit3D.classList.toggle('hidden', !isFs);
+      if (fsLabel3D) fsLabel3D.textContent = isFs ? 'Salir' : 'Pantalla completa';
+    };
+    document.addEventListener('fullscreenchange', updateFsState);
+    document.addEventListener('webkitfullscreenchange', updateFsState);
+  }
+
+  // ─── Modal AR listeners ──────────────────────────────────────────────────
   const btnOpenAr = document.getElementById('btnOpenArModal');
   if (btnOpenAr) btnOpenAr.addEventListener('click', openARModal);
 
@@ -953,13 +1096,15 @@
   if (modalBtnAr) modalBtnAr.addEventListener('click', () => set3DMode('ar'));
   if (modalBtnClean) modalBtnClean.addEventListener('click', () => set3DMode('clean'));
 
-  // ─── Reset camera ────────────────────────────────────────────────────────
-  resetBtn.addEventListener('click', () => {
-    modelV.cameraOrbit  = 'auto auto auto';
-    modelV.cameraTarget = 'auto auto auto';
-    modelV.fieldOfView  = 'auto';
-    try { modelV.resetTurntableRotation(0); } catch(_) {}
-  });
+  // ─── Reset camera legacy fallback ─────────────────────────────────────────
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      modelV.cameraOrbit  = 'auto auto auto';
+      modelV.cameraTarget = 'auto auto auto';
+      modelV.fieldOfView  = 'auto';
+      try { modelV.resetTurntableRotation(0); } catch(_) {}
+    });
+  }
 
   // ─── Keyboard shortcuts ───────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
