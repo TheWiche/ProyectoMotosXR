@@ -96,7 +96,7 @@ MOTOS_CONFIG = {
     'tvs-raider': {
         'nombre': 'TVS Raider 125',
         'src_usdz': 'Tvs raider/raider.usdz',
-        'clean_glb': 'public/models/tvs-raider.glb',
+        'clean_glb': 'public/models/android/tvs-raider.glb',
         'accent': '#38bdf8',  # Neon Cyan
         'cards': [
             {
@@ -174,7 +174,7 @@ MOTOS_CONFIG = {
     'akt-nkd': {
         'nombre': 'AKT NKD 125',
         'src_usdz': 'Akt Nkd/nkd.usdz',
-        'clean_glb': 'public/models/akt-nkd.glb',
+        'clean_glb': 'public/models/android/akt-nkd.glb',
         'accent': '#a3e635',  # Lime Neon
         'cards': [
             {
@@ -252,7 +252,7 @@ MOTOS_CONFIG = {
     'pulsar-ns200': {
         'nombre': 'Pulsar NS 200',
         'src_usdz': 'Pulsar ns 200/ns200.usdz',
-        'clean_glb': 'public/models/pulsar-ns200.glb',
+        'clean_glb': 'public/models/android/pulsar-ns200.glb',
         'accent': '#f43f5e',  # Rose/Red Neon
         'cards': [
             {
@@ -330,7 +330,7 @@ MOTOS_CONFIG = {
     'bajaj-boxer': {
         'nombre': 'Bajaj Boxer 100',
         'src_usdz': 'Bajaj Boxer/boxer.usdz',
-        'clean_glb': 'public/models/bajaj-boxer.glb',
+        'clean_glb': 'public/models/android/bajaj-boxer.glb',
         'accent': '#eab308',  # Amber Neon
         'cards': [
             {
@@ -408,7 +408,7 @@ MOTOS_CONFIG = {
     'hero-eco': {
         'nombre': 'Hero Eco Deluxe',
         'src_usdz': 'Hero eco deluxe/hero.usdz',
-        'clean_glb': 'public/models/hero-eco.glb',
+        'clean_glb': 'public/models/android/hero-eco.glb',
         'accent': '#10b981',  # Emerald Neon
         'cards': [
             {
@@ -588,7 +588,7 @@ def create_texture_material(stage, mat_path, tex_file):
     
     tex = UsdShade.Shader.Define(stage, f'{mat_path}/texSampler')
     tex.CreateIdAttr('UsdUVTexture')
-    tex.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(tex_file)
+    tex.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(Sdf.AssetPath(os.path.basename(tex_file)))
     tex.CreateInput('st', Sdf.ValueTypeNames.Float2).ConnectToSource(reader.CreateOutput('result', Sdf.ValueTypeNames.Float2))
     
     pbr.CreateInput('diffuseColor', Sdf.ValueTypeNames.Color3f).ConnectToSource(tex.CreateOutput('rgb', Sdf.ValueTypeNames.Color3f))
@@ -608,9 +608,11 @@ def process_single_moto(moto_id, moto_info):
         print(f"[ERROR] Archivo fuente no encontrado: {src_usdz}")
         return False
         
-    out_clean_usdz = os.path.abspath(f"public/models/{moto_id}.usdz")
-    out_ar_usdz = os.path.abspath(f"public/models/{moto_id}_ar.usdz")
-    out_ar_glb = os.path.abspath(f"public/models/{moto_id}_ar.glb")
+    os.makedirs("public/models/ios", exist_ok=True)
+    os.makedirs("public/models/android", exist_ok=True)
+    out_clean_usdz = os.path.abspath(f"public/models/ios/{moto_id}.usdz")
+    out_ar_usdz = os.path.abspath(f"public/models/ios/{moto_id}_ar.usdz")
+    out_ar_glb = os.path.abspath(f"public/models/android/{moto_id}_ar.glb")
     
     # 1. Extraer USDZ del usuario
     tmpdir = tempfile.mkdtemp()
@@ -633,11 +635,17 @@ def process_single_moto(moto_id, moto_info):
                 if prim.HasProperty('primvars:tangents'):
                     prim.RemoveProperty('primvars:tangents')
                     
-        # Asegurar rutas de texturas relativas y guardar stage limpio
-        layer = stage.GetRootLayer()
-        if layer:
-            UsdUtils.ModifyAssetPaths(layer, lambda p: './' + os.path.basename(p))
-        stage.Save()
+        # Asegurar rutas de texturas estrictamente relativas (sin rutas de temp ni absolutas)
+        for prim in stage.Traverse():
+            if prim.IsA(UsdShade.Shader):
+                shader = UsdShade.Shader(prim)
+                inp = shader.GetInput('file')
+                if inp:
+                    val = inp.Get()
+                    if val and hasattr(val, 'path'):
+                        base_name = os.path.basename(val.path)
+                        inp.Set(Sdf.AssetPath(base_name))
+        stage.GetRootLayer().Save()
             
         # 3. Optimizar texturas nativas a Retina 2K (2048x2048 max)
         for fname in os.listdir(tmpdir):
@@ -779,6 +787,16 @@ def process_single_moto(moto_id, moto_info):
             cyl_xf.AddOrientOp().Set(Gf.Quatf(rot.GetQuat()))
             UsdShade.MaterialBindingAPI(cyl).Bind(pin_mat)
             
+        # Asegurar rutas de texturas estrictamente relativas también para el modelo enriquecido
+        for prim in stage.Traverse():
+            if prim.IsA(UsdShade.Shader):
+                shader = UsdShade.Shader(prim)
+                inp = shader.GetInput('file')
+                if inp:
+                    val = inp.Get()
+                    if val and hasattr(val, 'path'):
+                        base_name = os.path.basename(val.path)
+                        inp.Set(Sdf.AssetPath(base_name))
         stage.GetRootLayer().Save()
         del stage
         
