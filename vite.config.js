@@ -22,6 +22,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         catalog: resolve(__dirname, 'MotosARCatalog/index.html'),
         ar: resolve(__dirname, 'ar.html'),
+        reporte: resolve(__dirname, 'reporte.html'),
       },
     },
   },

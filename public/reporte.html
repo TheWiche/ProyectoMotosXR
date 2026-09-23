@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MotosXR — Informe Técnico de Arquitectura, Modelado 3D y WebAR</title>
+  
+  <!-- Tipografías de alta precisión -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              cyan: '#38bdf8',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+              purple: '#a855f7',
+              dark: '#070b14',
+              surface: '#0d1527',
+              card: '#131e36',
+              border: '#1f2f52'
+            }
+          },
+          fontFamily: {
+            grotesk: ['"Space Grotesk"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    body {
+      background-color: #070b14;
+      color: #e2e8f0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      selection-background-color: #38bdf8;
+      selection-color: #000;
+    }
+    .neon-border-cyan {
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+    }
+    .neon-border-amber {
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.1);
+    }
+    .code-block {
+      background: #090e1a;
+      border: 1px solid #1e293b;
+      border-radius: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200 antialiased selection:bg-sky-400 selection:text-slate-950 pb-20">
+
+  <!-- Header / Hero -->
+  <header class="border-b border-brand-border bg-brand-surface/80 backdrop-blur-lg sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center font-grotesk font-black text-slate-950 text-xl shadow-lg shadow-sky-500/20">
+          XR
+        </div>
+        <div>
+          <h1 class="font-grotesk font-bold text-lg text-white leading-tight">Proyecto MotosXR · Documentación Técnica</h1>
+          <p class="text-xs text-slate-400 font-mono">Memoria de Ingeniería, Pipeline 3D, WebAR y Decisiones de Diseño</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <a href="./MotosARCatalog/" class="px-3.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 border border-sky-400/30 text-sky-400 font-mono text-xs font-semibold transition-all">
+          ← Ir al Catálogo AR
+        </a>
+        <a href="./" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-semibold transition-all">
+          Comparador 360°
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 space-y-12">
+
+    <!-- Resumen de Estado Ejecutivo -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="p-5 rounded-2xl bg-brand-card/90 border border-brand-border shadow-xl">
+        <div class="text-xs font-mono text-sky-400 font-semibold mb-1">PLATAFORMAS SOPORTADAS</div>
+        <div class="text-2xl font-grotesk font-bold text-white">iOS & Android</div>
+        <p class="text-xs text-slate-400 mt-2">Apple Quick Look (.usdz) + Scene Viewer / Cámara Web (.glb)</p>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-brand-card/90 border border-brand-border shadow-xl">
+        <div class="text-xs font-mono text-emerald-400 font-semibold mb-1">PESO PROMEDIO USDZ/GLB</div>
+        <div class="text-2xl font-grotesk font-bold text-white">&lt; 18.5 MB</div>
+        <p class="text-xs text-slate-400 mt-2">Decimación poligonal selectiva para carga instantánea en 4G/5G</p>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-brand-card/90 border border-brand-border shadow-xl">
+        <div class="text-xs font-mono text-amber-400 font-semibold mb-1">SISTEMA DUAL</div>
+        <div class="text-2xl font-grotesk font-bold text-white">Limpio vs 3D AR</div>
+        <p class="text-xs text-slate-400 mt-2">Alternancia instantánea entre showroom fotorrealista e infografía 3D</p>
+      </div>
+
+      <div class="p-5 rounded-2xl bg-brand-card/90 border border-brand-border shadow-xl">
+        <div class="text-xs font-mono text-purple-400 font-semibold mb-1">CANAL DE CONVERSIÓN</div>
+        <div class="text-2xl font-grotesk font-bold text-white">WhatsApp Directo</div>
+        <p class="text-xs text-slate-400 mt-2">Cotización dinámica vinculada al modelo (+57 314 5813171)</p>
+      </div>
+    </section>
+
+    <!-- 1. QUÉ SE HIZO -->
+    <section class="p-8 rounded-3xl bg-brand-surface/90 border border-brand-border neon-border-cyan space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 font-mono font-bold flex items-center justify-center text-sm">01</span>
+        <h2 class="font-grotesk font-bold text-2xl text-white">¿Qué se hizo? (Detalle de Funcionalidades y Entregables)</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-300">
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800">
+            <h3 class="font-grotesk font-bold text-sky-300 text-base mb-1">1. Pipeline Dual de Modelos 3D</h3>
+            <p>Se crearon dos versiones geométricas completas por cada motocicleta del catálogo (5 modelos en total = 20 archivos 3D):</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-slate-400 text-xs">
+              <li><strong class="text-white">Modo Limpio (.glb / .usdz):</strong> Modelo fotorrealista 1:1 para inspección de diseño estético.</li>
+              <li><strong class="text-white">Modo Ficha 3D (.glb / .usdz):</strong> Modelo equipado con tarjetas holográficas flotantes, esferas de anclaje milimétricas en piezas clave y tubos conectores tridimensionales.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800">
+            <h3 class="font-grotesk font-bold text-sky-300 text-base mb-1">2. Separación Arquitectónica de Modelos</h3>
+            <p>Se estructuró un sistema de almacenamiento limpio y segmentado en el servidor:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1 font-mono text-xs text-slate-400">
+              <li><span class="text-sky-300">public/models/android/</span> → Modelos GLB para Chrome, Scene Viewer y WebGL.</li>
+              <li><span class="text-purple-300">public/models/ios/</span> → Modelos USDZ optimizados para Safari y Apple Quick Look.</li>
+              <li><span class="text-amber-300">public/posters/</span> → Renders póster en alta resolución para previews inmediatas.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800">
+            <h3 class="font-grotesk font-bold text-sky-300 text-base mb-1">3. Barra de Controles HUD Dentro del Visor</h3>
+            <p>Se colocó una barra de herramientas flotante sobre el visor 3D para control intuitivo:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-slate-400 text-xs">
+              <li><strong>Pausar / Reanudar Rotación:</strong> Detiene el movimiento orbital automático para inspección fija.</li>
+              <li><strong>Restablecer Cámara:</strong> Devuelve la vista a su ángulo inicial en caso de desorientación.</li>
+              <li><strong>Ocultar / Mostrar Etiquetas:</strong> Alterna entre la moto limpia y las fichas holográficas con realce dorado.</li>
+              <li><strong>Pantalla Completa:</strong> Maximiza el visor a toda la pantalla.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800">
+            <h3 class="font-grotesk font-bold text-sky-300 text-base mb-1">4. Selector Superior con Miniaturas Reales</h3>
+            <p>Se renovó el selector de motocicletas:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-slate-400 text-xs">
+              <li>Se eliminó el texto plano y el badge morado artificial ("3D HD").</li>
+              <li>Se integró una miniatura circular nítida de cada moto proveniente de los pósters del proyecto.</li>
+              <li>Se muestra la marca, nombre comercial y borde neón distintivo de cada marca.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800">
+            <h3 class="font-grotesk font-bold text-sky-300 text-base mb-1">5. Sincronización Total con Flechas Laterales</h3>
+            <p>Al hacer clic en las flechas de navegación táctil (<span class="font-mono">navPrev</span> / <span class="font-mono">navNext</span>), teclado o deslizamiento:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-slate-400 text-xs">
+              <li>El modelo 3D cambia de inmediato.</li>
+              <li>La pastilla correspondiente se marca activa y se autocentra en el scroll.</li>
+              <li>Se actualizan ficha técnica, precios, cilindrada, potencia y botón directo de WhatsApp.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800">
+            <h3 class="font-grotesk font-bold text-sky-300 text-base mb-1">6. Eliminación de Solapamientos Responsive</h3>
+            <p>Corrección integral de diseño adaptativo:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1 text-slate-400 text-xs">
+              <li><strong>En computadores:</strong> Se ocultan los botones flotantes duplicados para que la barra HUD quede perfectamente centrada y limpia.</li>
+              <li><strong>En celulares:</strong> Se escalonan verticalmente ficha compacta, botones flotantes y barra HUD con espacios de seguridad (safe-areas).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CÓMO SE HIZO -->
+    <section class="p-8 rounded-3xl bg-brand-surface/90 border border-brand-border space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono font-bold flex items-center justify-center text-sm">02</span>
+        <h2 class="font-grotesk font-bold text-2xl text-white">¿Cómo se hizo? (Arquitectura Técnica y Pipelines)</h2>
+      </div>
+
+      <p class="text-sm text-slate-300 leading-relaxed">
+        Para lograr que las anotaciones existieran como geometría 3D física dentro del archivo (en lugar de capas 2D sobrepuestas en pantalla) y que los modelos abrieran en iPhone sin fallos de pantalla rosa ni retrasos, se diseñó un pipeline automatizado en Python acoplado al motor de Blender 5.2.
+      </p>
+
+      <!-- Subpasos técnicos -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Tarjetas Pillow & UVs -->
+        <div class="p-5 rounded-2xl bg-brand-card/70 border border-slate-800 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <h3 class="font-grotesk font-bold text-white text-base">A. Generación Procedural de Texturas (Pillow)</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Se programó una rutina con la librería <code>Pillow</code> que genera en memoria imágenes RGBA de 1024×540 px con esquinas redondeadas transparentes, fondo oscuro semitransparente (<code>#0f172ae6</code>), tipografía monoespaciada para valores técnicos y marco neón con el color de acento de cada marca.
+          </p>
+        </div>
+
+        <!-- Doble cara 360 -->
+        <div class="p-5 rounded-2xl bg-brand-card/70 border border-slate-800 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <h3 class="font-grotesk font-bold text-white text-base">B. Geometría Doble Cara (Front & Back UV Invertida)</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            En AR el usuario camina alrededor de la moto. Un plano simple se vería negro por detrás o con texto invertido. Se crearon dos planos por tarjeta: uno frontal normal y uno trasero rotado 180° con inversión horizontal de coordenadas UV (<code>uv[0] = 1.0 - uv[0]</code>). Así, la ficha técnica se lee al derecho desde cualquier ángulo en 360°.
+          </p>
+        </div>
+
+        <!-- Auto-Emisión -->
+        <div class="p-5 rounded-2xl bg-brand-card/70 border border-slate-800 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <h3 class="font-grotesk font-bold text-white text-base">C. Shaders con Auto-Emisión (Legibilidad AR)</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            La luz ambiental real en una sala o exterior es impredecible. Para evitar que las tarjetas se oscurezcan, la textura se conectó a <code>Base Color</code> y a <code>Emission Color</code> en el material <code>Principled BSDF</code> con <code>Emission Strength = 1.3</code>, garantizando brillo y nitidez propios sin depender de la luz del entorno.
+          </p>
+        </div>
+
+        <!-- Filtro WebP a PNG y Apple Metal -->
+        <div class="p-5 rounded-2xl bg-brand-card/70 border border-slate-800 space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <h3 class="font-grotesk font-bold text-white text-base">D. Eliminación de WebP (Anti-Pantalla Rosa en iPhone)</h3>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Apple Metal (motor gráfico de iOS) no soporta texturas comprimidas en WebP dentro de archivos USDZ, provocando el clásico fallo donde la moto se torna magenta/rosa neón. El pipeline extrae cada textura en Blender, la guarda como PNG de 24 bits y reasigna los nodos de material automáticamente antes de exportar.
+          </p>
+        </div>
+      </div>
+
+      <!-- Pipeline Poligonal y Ejes -->
+      <div class="p-5 rounded-2xl bg-brand-card/70 border border-slate-800 space-y-3">
+        <h3 class="font-grotesk font-bold text-white text-base">E. Decimación Selectiva y Normalización Espacial Y-Up</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+          <div>
+            <strong class="text-slate-200">Decimación selectiva por vértices:</strong> En lugar de diezmar todo el modelo (lo que destruiría los textos planos), el algoritmo únicamente aplica el modificador <code>DECIMATE</code> a mallas complejas (más de 5,000 vértices, como rines, chasis y bloque de motor), preservando el 100% de la nitidez en tarjetas y tubos conectores.
+          </div>
+          <div>
+            <strong class="text-slate-200">Orientación espacial de Apple ARKit:</strong> Se forzó la exportación USD con coordenadas globales <code>convert_orientation=True</code>, <code>export_global_up_selection='Y'</code> y <code>export_global_forward_selection='NEGATIVE_Z'</code>, asegurando que la moto aparezca parada sobre sus dos ruedas en el piso y nunca de lado o de cabeza.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. QUÉ HERRAMIENTAS SE USARON -->
+    <section class="p-8 rounded-3xl bg-brand-surface/90 border border-brand-border space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 font-mono font-bold flex items-center justify-center text-sm">03</span>
+        <h2 class="font-grotesk font-bold text-2xl text-white">¿Qué herramientas y tecnologías se usaron?</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-slate-800">
+          <div class="text-purple-400 font-mono font-bold text-xs mb-1">MOTOR 3D Y GENERACIÓN</div>
+          <h3 class="font-grotesk font-bold text-lg text-white mb-2">Meshy 3D & Blender 5.2</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong>Meshy:</strong> Creación y refinamiento de geometría tridimensional de motocicletas.<br/><br/>
+            <strong>Blender 5.2 (Headless):</strong> Ejecución en segundo plano vía scripts de Python para construir infografías, soldar esferas mecánicas, remapear texturas a PNG y exportar a USDZ nativo con Apple Preview Surface.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-slate-800">
+          <div class="text-sky-400 font-mono font-bold text-xs mb-1">PROCESAMIENTO GRÁFICO</div>
+          <h3 class="font-grotesk font-bold text-lg text-white mb-2">Python 3 + Pillow (PIL)</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Generación automatizada de pósters 2D y tarjetas técnicas en canal Alpha RGBA. Manejo de tipografías TrueType, sombras suaves, marcos neón y cálculo matemático de vectores de dirección por cuaterniones.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-slate-800">
+          <div class="text-emerald-400 font-mono font-bold text-xs mb-1">FRONTEND & WEBAR</div>
+          <h3 class="font-grotesk font-bold text-lg text-white mb-2">Web Standards & Model-Viewer</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong>@google/model-viewer 4.0:</strong> Componente WebGL/PBR oficial para renderizado e invocación nativa de Scene Viewer y Quick Look.<br/><br/>
+            <strong>Vite 6 & Tailwind CSS:</strong> Empaquetador modular ultrarrápido y maquetación de alto rendimiento.<br/><br/>
+            <strong>HTML5 Canvas API:</strong> Composición en tiempo real de fotos capturadas y stickers AR.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. QUÉ NO SE HIZO Y POR QUÉ -->
+    <section class="p-8 rounded-3xl bg-brand-surface/90 border border-brand-border neon-border-amber space-y-6">
+      <div class="flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold flex items-center justify-center text-sm">04</span>
+        <h2 class="font-grotesk font-bold text-2xl text-white">¿Qué NO se hizo y por qué? (Decisiones Arquitectónicas y Justificaciones)</h2>
+      </div>
+
+      <div class="space-y-4 text-sm text-slate-300">
+        <!-- Caso Imprimir -->
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-amber-500/20 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-grotesk font-bold text-amber-300 text-base">1. La función nativa de "Imprimir Calcomanía / Sticker" en el navegador</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">Descartada y Sustituida</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong>Qué pasaba:</strong> La función <code>window.print()</code> cargaba una hoja en blanco en los dispositivos móviles.<br/>
+            <strong>Por qué no se usó:</strong> Los navegadores en teléfonos Android e iOS congelan o no rasterizan de forma síncrona los lienzos dinámicos <code>&lt;canvas&gt;</code> (como el código QR y la tarjeta gráfica de alta resolución) al disparar el cuadro de diálogo de impresión del sistema operativo, resultando en una hoja vacía.<br/>
+            <strong>Solución adoptada:</strong> Se sustituyó por un generador de imagen de alta fidelidad (1200×1400 px a 300 DPI) con descarga directa en archivo PNG (<code>Descargar Tarjeta AR</code>), garantizando que el usuario pueda guardarla en su galería, compartirla por WhatsApp o imprimirla nítidamente desde cualquier impresora sin depender del bug del navegador móvil.
+          </p>
+        </div>
+
+        <!-- Caso Generación Procedural en Cliente -->
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-grotesk font-bold text-slate-200 text-base">2. Generación procedural de infografías 3D en tiempo real en el celular</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">Evitada por Rendimiento</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong>Por qué no se hizo:</strong> Construir geometría, textos y nodos de materiales con JavaScript en el dispositivo del cliente causaría tirones de frames (FPS drops), calentamiento del teléfono y cuelgues de memoria en celulares de gama media y baja en Colombia.<br/>
+            <strong>Solución adoptada:</strong> Todos los modelos se pre-procesaron y compilaron con Blender 5.2 en servidor/entorno local. De esta forma, el celular solo descarga un archivo estático y optimizado que abre en menos de 1 segundo con aceleración por hardware.
+          </p>
+        </div>
+
+        <!-- Caso Formato GLB universal para iPhone -->
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-grotesk font-bold text-slate-200 text-base">3. Uso de un único formato GLB para todos los dispositivos</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">Restricción de Apple</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong>Por qué no se hizo:</strong> El sistema operativo iOS de Apple no soporta el formato estándar de la industria glTF/GLB dentro de su visor nativo de Realidad Aumentada (Apple Quick Look). Apple exige de forma exclusiva el formato USDZ empaquetado.<br/>
+            <strong>Solución adoptada:</strong> Se generó una arquitectura dual estricta: GLB optimizado para el ecosistema Android / Chrome, y USDZ nativo con shaders Apple Preview Surface para iPhone / Safari.
+          </p>
+        </div>
+
+        <!-- Caso Marcadores AR Físicos Rígidos -->
+        <div class="p-5 rounded-2xl bg-brand-card/80 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-grotesk font-bold text-slate-200 text-base">4. AR obligatoria basada en marcadores impresos tipo Hiro/Vuforia</h3>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">Evitada por Fricción de Usuario</span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong>Por qué no se hizo:</strong> Obligar al usuario a tener una hoja impresa o un marcador físico en el suelo antes de poder ver la moto reduce drásticamente las conversiones y ventas.<br/>
+            <strong>Solución adoptada:</strong> Se utilizó detección SLAM de plano horizontal (Ground Plane Detection). El cliente simplemente apunta con la cámara de su celular al suelo de su sala, garaje o calle y la moto se ancla a escala 1:1 de inmediato.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumen de Archivos y Scripts Clave -->
+    <section class="p-8 rounded-3xl bg-brand-surface/90 border border-brand-border space-y-6">
+      <h2 class="font-grotesk font-bold text-2xl text-white">Inventario de Archivos Clave del Proyecto</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+        <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800 space-y-2">
+          <div class="text-sky-400 font-bold">Scripts de Automatización y Modelado 3D</div>
+          <ul class="space-y-1 text-slate-300">
+            <li>• <span class="text-white">scripts/build_all_models_blender.py:</span> Generador maestro de tarjetas Pillow y planos 3D.</li>
+            <li>• <span class="text-white">scripts/blender_master_export_worker.py:</span> Worker Blender de exportación USDZ/GLB.</li>
+            <li>• <span class="text-white">scripts/generate_posters.py:</span> Renderizador de pósters y miniaturas de catálogo.</li>
+            <li>• <span class="text-white">scripts/organize_assets.mjs:</span> Normalizador de rutas en carpetas android/ios.</li>
+          </ul>
+        </div>
+
+        <div class="p-4 rounded-xl bg-brand-card/60 border border-slate-800 space-y-2">
+          <div class="text-emerald-400 font-bold">Frontend Web y Experiencia WebAR</div>
+          <ul class="space-y-1 text-slate-300">
+            <li>• <span class="text-white">MotosARCatalog/index.html:</span> Catálogo interactivo WebAR.</li>
+            <li>• <span class="text-white">MotosARCatalog/app.js:</span> Lógica de selector, HUD, sincronización y cámara AR.</li>
+            <li>• <span class="text-white">MotosARCatalog/styles.css:</span> Estilos responsive sin solapamiento y modo neón.</li>
+            <li>• <span class="text-white">index.html:</span> Comparador 360° con scrubber de alta precisión.</li>
+            <li>• <span class="text-white">ar.html:</span> Lanzador ligero de WebAR nativo.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enlaces directos -->
+    <footer class="pt-6 border-t border-brand-border flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-4">
+      <div>MotosXR Colombia · Catálogo y Visualizador 3D / WebAR</div>
+      <div class="flex items-center gap-4 text-sky-400">
+        <a href="./MotosARCatalog/" class="hover:underline">Abrir Catálogo WebAR</a>
+        <a href="./" class="hover:underline">Abrir Comparador 360°</a>
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+</html>
