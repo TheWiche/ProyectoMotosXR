@@ -40,6 +40,7 @@ temp_test/
 
 # Binaries
 *.exe
+*.zip
 
 # Raw user downloads (>100 MB) - processed models live in public/models/
 /Akt Nkd/
