@@ -39,7 +39,8 @@ const MOTOS = [
     precio:      6290000,
     financiado:  'Desde $118.000/mes',
     glb:         '/models/tvs-raider.glb',
-    usdz:        '/models/tvs-raider.usdz',
+    usdz:        '/models/tvs-raider_ar.usdz',
+    arGlb:       '/models/tvs-raider_ar.glb',
     poster:      '/posters/tvs-raider.png',
     acento:      '#a78bfa',   /* violet-400 */
     tags:        ['Sport', 'Premium', '125cc', '3D HD'],
@@ -61,7 +62,8 @@ const MOTOS = [
     precio:      5990000,
     financiado:  'Desde $112.000/mes',
     glb:         '/models/akt-nkd.glb',
-    usdz:        '/models/akt-nkd.usdz',
+    usdz:        '/models/akt-nkd_ar.usdz',
+    arGlb:       '/models/akt-nkd_ar.glb',
     poster:      '/posters/akt-nkd.png',
     acento:      '#a3e635',   /* lime-400 */
     tags:        ['Ciudad', 'Café Racer', '125cc', '3D HD'],
@@ -83,7 +85,8 @@ const MOTOS = [
     precio:      12490000,
     financiado:  'Desde $234.000/mes',
     glb:         '/models/pulsar-ns200.glb',
-    usdz:        '/models/pulsar-ns200.usdz',
+    usdz:        '/models/pulsar-ns200_ar.usdz',
+    arGlb:       '/models/pulsar-ns200_ar.glb',
     poster:      '/posters/pulsar-ns200.png',
     acento:      '#f43f5e',   /* rose-500 */
     tags:        ['Sport', 'Performance', '200cc', '3D HD'],
@@ -105,7 +108,8 @@ const MOTOS = [
     precio:      4490000,
     financiado:  'Desde $84.000/mes',
     glb:         '/models/bajaj-boxer.glb',
-    usdz:        '/models/bajaj-boxer.usdz',
+    usdz:        '/models/bajaj-boxer_ar.usdz',
+    arGlb:       '/models/bajaj-boxer_ar.glb',
     poster:      '/posters/bajaj-boxer.png',
     acento:      '#fb923c',   /* orange-400 */
     tags:        ['Trabajo', 'Campo', '100cc', '3D HD'],
@@ -127,7 +131,8 @@ const MOTOS = [
     precio:      4190000,
     financiado:  'Desde $79.000/mes',
     glb:         '/models/hero-eco.glb',
-    usdz:        '/models/hero-eco.usdz',
+    usdz:        '/models/hero-eco_ar.usdz',
+    arGlb:       '/models/hero-eco_ar.glb',
     poster:      '/posters/hero-eco.png',
     acento:      '#38bdf8',   /* sky-400 */
     tags:        ['Ahorro', 'Ciudad', '100cc', '3D HD'],
@@ -360,7 +365,7 @@ function loadMoto(idx) {
   /* Configurar enlace nativo para Apple Quick Look (iOS) */
   if (el.btnLaunchNativeAR) {
     if (m.usdz) {
-      const fullUsdz = window.location.origin + m.usdz;
+      const fullUsdz = window.location.origin + m.usdz + '#allowsContentScaling=0';
       el.btnLaunchNativeAR.setAttribute('href', fullUsdz);
       el.btnLaunchNativeAR.setAttribute('rel', 'ar');
     } else {
@@ -613,6 +618,16 @@ function launchNativeAR(e) {
   // En Android u otros navegadores:
   if (e && e.preventDefault) e.preventDefault();
   closeArChoiceModal();
+
+  const m = MOTOS[state.motoIdx];
+  const isAndroid = /Android/.test(navigator.userAgent);
+  if (isAndroid && m && (m.arGlb || m.glb)) {
+    showARToast('Iniciando Scene Viewer con infografía 3D...', 'Realidad Aumentada', 'info');
+    const fullGlbUrl = new URL(m.arGlb || m.glb, window.location.origin).href;
+    const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(fullGlbUrl)}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
+    window.location.href = intentUrl;
+    return;
+  }
 
   if (el.mv) {
     try {
@@ -1151,7 +1166,7 @@ function toggleFicha(force) {
 ══════════════════════════════════════════════ */
 function openQRModal() {
   const m   = MOTOS[state.motoIdx];
-  const url = motoBaseURL() + '?moto=' + m.id + '&ar=true';
+  const url = window.location.origin + '/ar.html?moto=' + m.id;
 
   el.stickerNombre.textContent = m.nombre;
   el.stickerPrecio.textContent = formatCOP(m.precio);
