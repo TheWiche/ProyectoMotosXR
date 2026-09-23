@@ -46,8 +46,8 @@ const MOTOS = [
     usdz:        '/models/ios/tvs-raider_ar.usdz',
     poster:      '/posters/tvs-raider.png',
     acento:      '#38bdf8',   /* cyan-400 */
-    tags:        ['Sport', 'Premium', '125cc', '3D HD'],
-    descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel LCD, faros LED y freno de disco delantero. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    tags:        ['Sport', 'Premium', '125cc', 'Doble Disco'],
+    descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel LCD, faros LED y freno de disco delantero. Modelo 3D optimizado para Realidad Aumentada.',
     disponible:  true,
     scale:       '1 1 1',
   },
@@ -72,8 +72,8 @@ const MOTOS = [
     usdz:        '/models/ios/akt-nkd_ar.usdz',
     poster:      '/posters/akt-nkd.png',
     acento:      '#a3e635',   /* lime-400 */
-    tags:        ['Ciudad', 'Café Racer', '125cc', '3D HD'],
-    descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. Ligera, ágil y económica. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    tags:        ['Ciudad', 'Café Racer', '125cc', 'Freno Disco'],
+    descripcion: 'Estilo café racer moderno con motor 4T de alto rendimiento. Ligera, ágil y económica. Modelo 3D optimizado para Realidad Aumentada.',
     disponible:  true,
     scale:       '1 1 1',
   },
@@ -98,8 +98,8 @@ const MOTOS = [
     usdz:        '/models/ios/pulsar-ns200_ar.usdz',
     poster:      '/posters/pulsar-ns200.png',
     acento:      '#f43f5e',   /* rose-500 */
-    tags:        ['Sport', 'Performance', '200cc', '3D HD'],
-    descripcion: 'Naked sport con motor DTS-Fi de triple chispa y refrigeración líquida. Máxima potencia y respuesta. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    tags:        ['Sport', 'Performance', '200cc', 'Triple Chispa'],
+    descripcion: 'Naked sport con motor DTS-Fi de triple chispa y refrigeración líquida. Máxima potencia y aceleración. Modelo 3D optimizado para Realidad Aumentada.',
     disponible:  true,
     scale:       '1 1 1',
   },
@@ -124,8 +124,8 @@ const MOTOS = [
     usdz:        '/models/ios/bajaj-boxer_ar.usdz',
     poster:      '/posters/bajaj-boxer.png',
     acento:      '#eab308',   /* amber-500 */
-    tags:        ['Trabajo', 'Campo', '100cc', '3D HD'],
-    descripcion: 'La moto más robusta y guerrera del país. Durabilidad legendaria y mínimo consumo de combustible. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    tags:        ['Trabajo', 'Campo', '100cc', 'Ultra Rendimiento'],
+    descripcion: 'La moto más robusta y guerrera del país. Durabilidad comprobada y mínimo consumo de combustible. Modelo 3D optimizado para Realidad Aumentada.',
     disponible:  true,
     scale:       '1 1 1',
   },
@@ -150,8 +150,8 @@ const MOTOS = [
     usdz:        '/models/ios/hero-eco_ar.usdz',
     poster:      '/posters/hero-eco.png',
     acento:      '#10b981',   /* emerald-500 */
-    tags:        ['Ahorro', 'Ciudad', '100cc', '3D HD'],
-    descripcion: 'La campeona de la economía con tecnología i3S de ahorro de combustible. Confortable y confiable. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
+    tags:        ['Ahorro', 'Ciudad', '100cc', 'i3S Ahorro'],
+    descripcion: 'La campeona de la economía con tecnología i3S de ahorro de combustible. Confortable y confiable. Modelo 3D optimizado para Realidad Aumentada.',
     disponible:  true,
     scale:       '1 1 1',
   },
@@ -358,23 +358,8 @@ function loadMoto(idx) {
   const m = MOTOS[idx];
 
   /* Color de acento dinámico */
-  el.accentBar.style.background = m.acento;
+  if (el.accentBar) el.accentBar.style.background = m.acento;
   document.documentElement.style.setProperty('--accent-ar', m.acento);
-
-  /* Pill de estado del modelo */
-  if (el.modelStatusPill && el.modelStatusText && el.modelStatusDot) {
-    if (!m.disponible) {
-      el.modelStatusPill.classList.remove('hidden', 'status-active');
-      el.modelStatusPill.classList.add('status-soon');
-      el.modelStatusText.textContent = 'Modelo en preparación · Próximamente disponible';
-      el.modelStatusDot.style.background = '#f59e0b';
-    } else {
-      el.modelStatusPill.classList.remove('hidden', 'status-soon');
-      el.modelStatusPill.classList.add('status-active');
-      el.modelStatusText.textContent = '✨ Modelo 3D HD Activo · Escala 1:1';
-      el.modelStatusDot.style.background = m.acento;
-    }
-  }
 
   /* Carga del modelo 3D principal */
   setArButtonReady(false);
@@ -434,6 +419,33 @@ function loadMoto(idx) {
     if (targetUsdz) el.cameraMv.setAttribute('ios-src', targetUsdz);
   }
 
+  /* Ficha técnica */
+  if (el.motoMarca)  el.motoMarca.textContent  = m.marca;
+  if (el.motoNombre) el.motoNombre.textContent = m.nombre;
+  if (el.motoPrecio) el.motoPrecio.textContent = formatCOP(m.precio);
+  if (el.motoFinanc) el.motoFinanc.textContent = m.financiado;
+  if (el.motoDesc)   el.motoDesc.textContent   = m.descripcion;
+  if (el.motoTags)   el.motoTags.innerHTML     = m.tags.map(t => `<span class="tag">${t}</span>`).join('');
+  if (el.motoSpecs)  el.motoSpecs.innerHTML    = buildSpecs(m);
+
+  /* WhatsApp URLs */
+  refreshWhatsApp(m);
+
+  /* Actualizar y centrar pills del selector en móvil y escritorio */
+  document.querySelectorAll('.moto-pill').forEach((btn, i) => {
+    const isActive = (i === idx);
+    btn.classList.toggle('active', isActive);
+    btn.style.setProperty('--acento', MOTOS[i].acento);
+    if (isActive) {
+      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  });
+
+  /* Actualizar URL en historial sin recargar */
+  const url = new URL(window.location);
+  url.searchParams.set('moto', m.id);
+  window.history.replaceState({}, '', url);
+
   /* Timeout de seguridad rápido para evitar cuelgues (8 segundos) */
   state.loadTimer = setTimeout(() => hideLoadOverlay(), 8000);
 }
@@ -464,10 +476,22 @@ function setViewModelMode(mode) {
   el.mv.setAttribute('src', targetGlb);
   if (targetUsdz) {
     el.mv.setAttribute('ios-src', targetUsdz);
+  } else {
+    el.mv.removeAttribute('ios-src');
   }
 
-  if (el.btnLaunchNativeAR && targetUsdz) {
-    el.btnLaunchNativeAR.setAttribute('href', window.location.origin + targetUsdz + '#allowsContentScaling=0');
+  if (el.btnLaunchNativeAR) {
+    if (targetUsdz) {
+      el.btnLaunchNativeAR.setAttribute('href', window.location.origin + targetUsdz + '#allowsContentScaling=0');
+      el.btnLaunchNativeAR.setAttribute('rel', 'ar');
+    } else {
+      el.btnLaunchNativeAR.removeAttribute('href');
+    }
+  }
+
+  if (state.isCameraActive && el.cameraMv) {
+    el.cameraMv.setAttribute('src', targetGlb);
+    if (targetUsdz) el.cameraMv.setAttribute('ios-src', targetUsdz);
   }
 
   // Actualizar modal QR si está abierto
@@ -475,34 +499,7 @@ function setViewModelMode(mode) {
     openQRModal();
   }
 
-  showARToast(mode === 'ar' ? '⚡ Modo Fichas Técnicas 3D activado' : '✨ Modo Moto Limpia 1:1 activado');
-
-  /* Ficha técnica */
-  el.motoMarca.textContent  = m.marca;
-  el.motoNombre.textContent = m.nombre;
-  el.motoPrecio.textContent = formatCOP(m.precio);
-  el.motoFinanc.textContent = m.financiado;
-  el.motoDesc.textContent   = m.descripcion;
-  el.motoTags.innerHTML     = m.tags.map(t => `<span class="tag">${t}</span>`).join('');
-  el.motoSpecs.innerHTML    = buildSpecs(m);
-
-  /* WhatsApp URLs */
-  refreshWhatsApp(m);
-
-  /* Actualizar y centrar pills del selector en móvil */
-  document.querySelectorAll('.moto-pill').forEach((btn, i) => {
-    const isActive = (i === idx);
-    btn.classList.toggle('active', isActive);
-    btn.style.setProperty('--acento', MOTOS[i].acento);
-    if (isActive) {
-      btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    }
-  });
-
-  /* Actualizar URL en historial sin recargar */
-  const url = new URL(window.location);
-  url.searchParams.set('moto', m.id);
-  window.history.replaceState({}, '', url);
+  showARToast(mode === 'ar' ? '⚡ Modo Fichas Técnicas 3D activado' : '✨ Modo Moto Limpia activado');
 }
 
 function buildSpecs(m) {
@@ -586,9 +583,13 @@ function buildSelector() {
        style="--acento:${m.acento}"
        aria-label="${m.nombre}${!m.disponible ? ' (Próximamente)' : ''}"
      >
-       <span class="pill-marca">${m.marca}</span>
-       <span class="pill-modelo">${m.modelo}</span>
-       ${!m.disponible ? '<span class="pill-badge-soon">Próx.</span>' : '<span class="pill-badge-live">3D HD</span>'}
+       <div class="pill-thumb-wrap">
+         <img src="${m.poster}" alt="${m.nombre}" class="pill-thumb" loading="lazy" />
+       </div>
+       <div class="pill-info">
+         <span class="pill-marca">${m.marca}</span>
+         <span class="pill-modelo">${m.modelo}</span>
+       </div>
      </button>`
   ).join('');
 
