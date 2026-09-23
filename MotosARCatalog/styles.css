@@ -490,6 +490,76 @@ model-viewer {
 }
 
 /* ════════════════════════════════════════════
+   SELECTOR DUAL DE MODO AR / 3D (Holográfico vs Limpio)
+════════════════════════════════════════════ */
+.model-mode-switch {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  padding: 3px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  gap: 2px;
+}
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+.mode-btn:hover {
+  color: #ffffff;
+}
+.mode-btn.active {
+  background: var(--accent-ar, #38bdf8);
+  color: #0b1326;
+  box-shadow: 0 0 14px var(--accent-ar, #38bdf8);
+}
+.mode-btn.active .mode-icon {
+  transform: scale(1.1);
+}
+
+.btn-download-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.btn-download-card:hover {
+  background: #38bdf8;
+  color: #0b1326;
+}
+
+/* ════════════════════════════════════════════
    FICHA PANEL (Bottom-sheet en Mobile)
 ════════════════════════════════════════════ */
 .ficha-panel {
@@ -1128,37 +1198,98 @@ body.ficha-is-open .wa-float-btn {
 
 
 /* ════════════════════════════════════════════
-   PRINT — Calcomanía 5×5 cm
-   Solo muestra #printSticker
+   PRINT — Ficha de Vitrina / Tarjeta AR (Solución Imprimible)
+   Garantiza que #printSticker se imprima centrado, nítido y sin hojas en blanco
 ════════════════════════════════════════════ */
 @media print {
   @page {
-    size: 5cm 5cm;
-    margin: 0;
+    size: auto;
+    margin: 15mm;
   }
-
-  body > *:not(#qrModal) { display: none !important; }
-  #qrModal { display: block !important; background: none; padding: 0; }
-  .modal-box { display: none !important; }
-  #printSticker {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  body > *:not(#qrModal) {
+    display: none !important;
+  }
+  #qrModal {
     display: block !important;
-    position: fixed !important;
-    inset: 0 !important;
-    width: 5cm !important;
-    height: 5cm !important;
-    padding: 3mm !important;
-    background: #fff !important;
-    border: none !important;
-    border-radius: 0 !important;
-    overflow: hidden !important;
+    position: static !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
   }
-  .sticker-callout { font-size: 6pt !important; margin-bottom: 1.5mm !important; }
-  .sticker-qr-wrap { margin-bottom: 1.5mm !important; }
+  .modal-box {
+    display: block !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+  .modal-header, .modal-url-row, .modal-actions {
+    display: none !important;
+  }
+  #printSticker {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    margin: 30px auto !important;
+    padding: 28px !important;
+    background: #ffffff !important;
+    border: 2px solid #0f172a !important;
+    border-radius: 20px !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+  }
+  .sticker-callout {
+    font-size: 11pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    text-align: center !important;
+    margin-bottom: 12px !important;
+    line-height: 1.3 !important;
+    letter-spacing: 0.05em !important;
+  }
+  .sticker-qr-wrap {
+    margin: 14px 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
   .sticker-qr-wrap img,
-  .sticker-qr-wrap canvas { width: 26mm !important; height: 26mm !important; }
-  .sticker-nombre  { font-size: 9pt  !important; margin-bottom: 0.5mm !important; }
-  .sticker-precio  { font-size: 8pt  !important; margin-bottom: 0.5mm !important; }
-  .sticker-brand   { font-size: 5.5pt !important; }
+  .sticker-qr-wrap canvas {
+    width: 190px !important;
+    height: 190px !important;
+    display: block !important;
+  }
+  .sticker-nombre {
+    font-size: 16pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    margin-top: 10px !important;
+    text-align: center !important;
+  }
+  .sticker-precio {
+    font-size: 14pt !important;
+    font-weight: 700 !important;
+    color: #0284c7 !important;
+    margin-top: 4px !important;
+    text-align: center !important;
+  }
+  .sticker-brand {
+    font-size: 9pt !important;
+    color: #64748b !important;
+    margin-top: 10px !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+  }
 }
 
 /* ════════════════════════════════════════════

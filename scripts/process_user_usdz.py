@@ -633,40 +633,33 @@ def process_single_moto(moto_id, moto_info):
                 if prim.HasProperty('primvars:tangents'):
                     prim.RemoveProperty('primvars:tangents')
                     
-        # Asegurar rutas de texturas relativas
+        # Asegurar rutas de texturas relativas y guardar stage limpio
         layer = stage.GetRootLayer()
         if layer:
             UsdUtils.ModifyAssetPaths(layer, lambda p: './' + os.path.basename(p))
-            
-        clean_usdc_path = os.path.join(tmpdir, "compact_clean.usdc")
-        stage.Export(clean_usdc_path)
+        stage.Save()
             
         # 3. Optimizar texturas nativas a Retina 2K (2048x2048 max)
         for fname in os.listdir(tmpdir):
             fpath = os.path.join(tmpdir, fname)
-            if fname.lower().endswith(('.jpg', '.jpeg', '.png')) and not fname.startswith('card_'):
-                resized_img = None
-                orig_sz = None
+            if fname.lower().endswith(('.jpg', '.jpeg', '.png')):
                 try:
                     with Image.open(fpath) as img:
                         if max(img.size) > 2048:
                             orig_sz = img.size
-                            resized_img = img.copy()
-                            resized_img.thumbnail((2048, 2048), Image.Resampling.LANCZOS)
-                    if resized_img:
-                        fmt = 'JPEG' if fname.lower().endswith(('.jpg', '.jpeg')) else 'PNG'
-                        resized_img.save(fpath, format=fmt, quality=88, optimize=True)
-                        print(f"  [Textura Optimizada] {fname}: {orig_sz} -> {resized_img.size}")
-                        del resized_img
+                            img.thumbnail((2048, 2048), Image.Resampling.LANCZOS)
+                            fmt = 'JPEG' if fname.lower().endswith(('.jpg', '.jpeg')) else 'PNG'
+                            img.save(fpath, format=fmt, quality=88, optimize=True)
+                            print(f"  [Textura Optimizada] {fname}: {orig_sz} -> {img.size}")
                 except Exception as e:
                     print(f"  [WARN] No se pudo redimensionar {fname}: {e}")
                     
         # 4. Guardar archivo LIMPIO: public/models/<id>.usdz
         writer_clean = AlignedUSDZWriter(out_clean_usdz)
-        with open(clean_usdc_path, 'rb') as f:
+        with open(usdc_path, 'rb') as f:
             writer_clean.add_file(usdc_name, f.read())
         for fname in sorted(os.listdir(tmpdir)):
-            if fname not in [usdc_name, "compact_clean.usdc", "compact_ar.usdc"] and not fname.endswith('.usdz') and not fname.startswith('card_'):
+            if fname != usdc_name and not fname.endswith('.usdz'):
                 fpath = os.path.join(tmpdir, fname)
                 with open(fpath, 'rb') as f:
                     writer_clean.add_file(fname, f.read())
@@ -786,16 +779,15 @@ def process_single_moto(moto_id, moto_info):
             cyl_xf.AddOrientOp().Set(Gf.Quatf(rot.GetQuat()))
             UsdShade.MaterialBindingAPI(cyl).Bind(pin_mat)
             
-        ar_usdc_path = os.path.join(tmpdir, "compact_ar.usdc")
-        stage.Export(ar_usdc_path)
+        stage.GetRootLayer().Save()
         del stage
         
         # 7. Empaquetar modelo enriquecido: public/models/<id>_ar.usdz
         writer_ar = AlignedUSDZWriter(out_ar_usdz)
-        with open(ar_usdc_path, 'rb') as f:
+        with open(usdc_path, 'rb') as f:
             writer_ar.add_file(usdc_name, f.read())
         for fname in sorted(os.listdir(tmpdir)):
-            if fname not in [usdc_name, "compact_clean.usdc", "compact_ar.usdc"] and not fname.endswith('.usdz'):
+            if fname != usdc_name and not fname.endswith('.usdz'):
                 fpath = os.path.join(tmpdir, fname)
                 with open(fpath, 'rb') as f:
                     writer_ar.add_file(fname, f.read())

@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Visualiza motocicletas en tu espacio real con Realidad Aumentada e infografía técnica 3D inmersiva." />
-  <title>Lanzador AR — MotosXR</title>
+  <title>Lanzador AR Dual — MotosXR</title>
 
   <!-- Fuentes Apex Precision -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -64,14 +64,17 @@
     .bar-glow {
       box-shadow: 0 0 12px var(--accent-glow, rgba(56, 189, 248, 0.8));
     }
+    /* Estilo de scroll horizontal suave para selector de motos */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="p-4 md:p-8 flex items-center justify-center">
+<body class="p-3 sm:p-6 md:p-8 flex items-center justify-center">
 
   <div id="appContainer" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center my-auto">
 
     <!-- Header / Brand -->
-    <header class="flex items-center justify-between w-full max-w-md md:max-w-4xl mb-6 px-2">
+    <header class="flex items-center justify-between w-full max-w-md md:max-w-4xl mb-4 px-2">
       <div class="flex items-center gap-2">
         <a href="/" class="flex items-center gap-2 group">
           <div class="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -83,10 +86,10 @@
           </div>
           <span class="font-grotesk font-bold tracking-wider text-lg text-white">Motos<span class="text-sky-400">XR</span></span>
         </a>
-        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-800/60">AR Launcher</span>
+        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-800/60">AR Dual</span>
       </div>
 
-      <a href="/MotosARCatalog/" class="text-xs text-slate-400 hover:text-sky-400 transition-colors flex items-center gap-1.5 py-1 px-3 rounded-full bg-slate-800/60 border border-slate-700/60">
+      <a href="/MotosARCatalog/" class="text-xs text-slate-300 hover:text-sky-400 transition-colors flex items-center gap-1.5 py-1 px-3 rounded-full bg-slate-800/80 border border-slate-700/80">
         <span>Catálogo 360°</span>
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
@@ -94,75 +97,94 @@
       </a>
     </header>
 
-    <!-- MOBILE VIEW (Preloader & Launch Trigger) -->
-    <div id="mobileView" class="w-full max-w-md bg-[#131b2e]/90 backdrop-blur-xl border border-[#3e484f]/60 rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center shadow-2xl relative overflow-hidden hidden">
+    <!-- Barra de selección rápida de motos -->
+    <div class="w-full max-w-md md:max-w-4xl mb-5 px-1 overflow-x-auto no-scrollbar flex items-center gap-2">
+      <button onclick="selectMoto('hero-eco')" data-moto="hero-eco" class="moto-pill flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white transition-all">
+        Hero Eco
+      </button>
+      <button onclick="selectMoto('akt-nkd')" data-moto="akt-nkd" class="moto-pill flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white transition-all">
+        AKT NKD 125
+      </button>
+      <button onclick="selectMoto('bajaj-boxer')" data-moto="bajaj-boxer" class="moto-pill flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white transition-all">
+        Bajaj Boxer
+      </button>
+      <button onclick="selectMoto('pulsar-ns200')" data-moto="pulsar-ns200" class="moto-pill flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white transition-all">
+        Pulsar NS 200
+      </button>
+      <button onclick="selectMoto('tvs-raider')" data-moto="tvs-raider" class="moto-pill flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white transition-all">
+        TVS Raider
+      </button>
+    </div>
+
+    <!-- MOBILE VIEW (Launcher Dual AR) -->
+    <div id="mobileView" class="w-full max-w-md bg-[#131b2e]/90 backdrop-blur-xl border border-[#3e484f]/60 rounded-3xl p-5 sm:p-7 flex flex-col items-center text-center shadow-2xl relative overflow-hidden hidden">
       <!-- Ambient light effect -->
       <div id="ambientAura" class="absolute -top-24 -left-24 w-48 h-48 rounded-full blur-3xl opacity-30 pointer-events-none bg-sky-400"></div>
 
       <!-- Motorcycle Poster preview -->
-      <div class="relative w-48 h-32 mb-4 flex items-center justify-center">
+      <div class="relative w-48 h-28 mb-3 flex items-center justify-center">
         <img id="mobilePoster" src="" alt="Moto" class="max-h-full max-w-full object-contain drop-shadow-2xl transition-transform duration-500" />
       </div>
 
       <!-- Motorcycle Title & Specs -->
-      <div class="mb-5">
-        <div id="mobileBadge" class="inline-block text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-full mb-2 border border-sky-400/40 bg-sky-500/10 text-sky-400 font-semibold">
-          Fichas 3D en Realidad Aumentada
-        </div>
+      <div class="mb-4">
         <h1 id="mobileTitle" class="text-2xl font-grotesk font-bold text-white tracking-wide">Cargando Moto...</h1>
-        <p id="mobileSubtitle" class="text-xs text-slate-400 font-mono mt-1"></p>
+        <p id="mobileSubtitle" class="text-xs text-slate-400 font-mono mt-0.5"></p>
+        <p id="mobilePrice" class="text-sm font-mono font-bold text-sky-400 mt-1"></p>
       </div>
 
-      <!-- Preloader Container -->
-      <div id="preloadContainer" class="w-full flex flex-col items-center">
-        <div class="w-full bg-[#1e293b] rounded-full h-3 mb-3 p-0.5 border border-slate-700/60 relative overflow-hidden">
-          <div id="progressBar" class="h-full rounded-full transition-all duration-200 bar-glow bg-sky-400" style="width: 0%"></div>
+      <!-- Selector de Modo AR Dual -->
+      <div class="w-full bg-[#0b1326] p-1.5 rounded-2xl border border-slate-700/80 mb-5">
+        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5 text-center">Modo de Visualización AR:</div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="mobileModeAr" onclick="setMode('ar')" class="py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-[#38bdf8] text-[#0b1326] shadow-md">
+            <span>⚡ Fichas 3D</span>
+          </button>
+          <button id="mobileModeClean" onclick="setMode('clean')" class="py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-[#bdc8d1] hover:text-white">
+            <span>✨ Moto Limpia</span>
+          </button>
         </div>
-
-        <div class="flex items-center justify-between w-full text-xs font-mono px-1">
-          <span id="progressStatus" class="text-slate-300">Iniciando descarga AR...</span>
-          <span id="progressPct" class="font-bold text-sky-400">0%</span>
-        </div>
-        <div id="progressBytes" class="text-[11px] font-mono text-slate-500 mt-1">Calculando peso del modelo...</div>
+        <p id="mobileModeDesc" class="text-[11px] text-slate-400 mt-1.5 px-2 text-center">
+          Modelo enriquecido con letreros técnicos flotantes en 3D apuntando a cada componente mecánico.
+        </p>
       </div>
 
-      <!-- Launch Action (Trigger button after ready or if auto-click is blocked) -->
-      <div id="readyContainer" class="w-full flex flex-col items-center gap-3 mt-4 hidden">
-        <div class="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 mb-1">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
-        <p class="text-sm font-medium text-emerald-300">¡Modelo listo para tu espacio!</p>
-        
-        <button id="launchArBtn" class="w-full py-4 px-6 rounded-2xl font-grotesk font-bold text-sm tracking-wider uppercase transition-all duration-300 bg-sky-400 hover:bg-sky-300 text-slate-950 flex items-center justify-center gap-2 neon-glow shadow-lg">
+      <!-- Launch Action (Botón principal de disparo inmediato) -->
+      <div class="w-full flex flex-col items-center gap-3">
+        <button id="launchArBtn" class="w-full py-4 px-6 rounded-2xl font-grotesk font-bold text-sm tracking-wider uppercase transition-all duration-300 bg-sky-400 hover:bg-sky-300 text-slate-950 flex items-center justify-center gap-2 neon-glow shadow-xl active:scale-95">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
           </svg>
-          <span id="launchArBtnText">Abrir en Realidad Aumentada</span>
+          <span id="launchArBtnText">Ver en tu espacio (AR)</span>
         </button>
 
-        <p class="text-[11px] text-slate-400 mt-1">
-          Apunta tu cámara al suelo y mueve suavemente el teléfono para posicionar la moto a escala 1:1.
+        <!-- Indicador de estado -->
+        <div id="mobileStatus" class="text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="mobileStatusText">Listo para abrir en cámara</span>
+        </div>
+
+        <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">
+          Apunta la cámara al suelo y mueve suavemente el teléfono para situar la moto en escala real 1:1.
         </p>
       </div>
 
       <!-- Fallback Error Container -->
       <div id="errorContainer" class="w-full mt-4 p-4 rounded-xl bg-red-950/30 border border-red-800/40 text-left hidden">
-        <p class="text-xs text-red-300 font-semibold mb-1">No se pudo descargar el modelo 3D</p>
-        <p class="text-[11px] text-red-400/80 mb-3" id="errorMessage">Verifica tu conexión a internet.</p>
+        <p class="text-xs text-red-300 font-semibold mb-1">Aviso</p>
+        <p class="text-[11px] text-red-400/80 mb-3" id="errorMessage"></p>
         <button onclick="location.reload()" class="text-xs font-mono px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-900/70 border border-red-700/50 text-red-200 transition-colors">
           Reintentar
         </button>
       </div>
     </div>
 
-    <!-- DESKTOP VIEW (Model 3D Preview + Live QR Code) -->
+    <!-- DESKTOP VIEW (Model 3D Preview + Mode Switch + Live QR Code) -->
     <div id="desktopView" class="w-full max-w-4xl bg-[#131b2e]/90 backdrop-blur-xl border border-[#3e484f]/60 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden hidden">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
 
         <!-- 3D Interactive Viewer -->
-        <div class="md:col-span-7 h-[380px] sm:h-[440px] bg-[#0b1326] rounded-2xl border border-slate-800/80 relative overflow-hidden flex items-center justify-center">
+        <div class="md:col-span-7 h-[380px] sm:h-[450px] bg-[#0b1326] rounded-2xl border border-slate-800/80 relative overflow-hidden flex items-center justify-center">
           <model-viewer
             id="desktopMv"
             src=""
@@ -181,34 +203,57 @@
             </div>
           </model-viewer>
 
+          <!-- Indicador flotante en el visor 3D -->
           <div class="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur border border-slate-700/60 px-3 py-1 rounded-full text-[11px] font-mono text-slate-300 flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
-            <span>Vista Previa 3D con Infografía</span>
+            <span id="desktopModeBadge">Modo Holográfico (Fichas 3D)</span>
           </div>
         </div>
 
         <!-- Info & QR Panel -->
         <div class="md:col-span-5 flex flex-col items-center md:items-start text-center md:text-left">
-          <span id="desktopBadge" class="text-[11px] font-mono uppercase px-3 py-1 rounded-full border border-sky-400/40 bg-sky-500/10 text-sky-400 font-semibold mb-3">
-            Realidad Aumentada 1:1
-          </span>
+          
+          <div class="w-full mb-3 flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase px-3 py-1 rounded-full border border-sky-400/40 bg-sky-500/10 text-sky-400 font-semibold">
+              Realidad Aumentada 1:1
+            </span>
+          </div>
+
           <h1 id="desktopTitle" class="text-3xl font-grotesk font-bold text-white tracking-tight">Moto</h1>
+          <p id="desktopCilindraje" class="text-xs font-mono text-slate-400 mt-0.5"></p>
           <p id="desktopPrice" class="text-xl font-mono font-bold text-sky-400 mt-1"></p>
-          <p id="desktopDesc" class="text-xs text-slate-400 mt-2 leading-relaxed">
-            Experimenta las dimensiones reales y las fichas técnicas 3D flotantes apuntando la cámara a tu sala, garaje o parqueadero.
-          </p>
+
+          <!-- Selector de Modo en Desktop -->
+          <div class="w-full bg-[#0b1326] p-2 rounded-2xl border border-slate-700/80 my-4">
+            <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1.5">Elegir modelo para AR & 3D:</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="desktopModeAr" onclick="setMode('ar')" class="py-1.5 px-3 rounded-xl font-mono text-xs font-bold transition-all bg-[#38bdf8] text-[#0b1326] shadow-sm flex items-center justify-center gap-1">
+                <span>⚡ Fichas 3D</span>
+              </button>
+              <button id="desktopModeClean" onclick="setMode('clean')" class="py-1.5 px-3 rounded-xl font-mono text-xs font-bold transition-all text-[#bdc8d1] hover:text-white flex items-center justify-center gap-1">
+                <span>✨ Moto Limpia</span>
+              </button>
+            </div>
+          </div>
 
           <!-- QR Code Container -->
-          <div class="mt-6 flex flex-col items-center p-4 bg-white rounded-2xl shadow-xl border border-slate-200">
-            <div id="desktopQr" class="w-[180px] h-[180px] flex items-center justify-center"></div>
-            <p class="text-[11px] font-mono text-slate-700 font-medium mt-2">Escanea con tu celular</p>
+          <div class="w-full flex flex-col items-center p-4 bg-white rounded-2xl shadow-xl border border-slate-200">
+            <div id="desktopQr" class="w-[170px] h-[170px] flex items-center justify-center"></div>
+            <p class="text-[11px] font-mono text-slate-700 font-medium mt-2">Apunta la cámara de tu celular</p>
           </div>
 
           <div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
             <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
-            <span>Compatible con iPhone (iOS Quick Look) y Android</span>
+            <span>iPhone (iOS Quick Look) y Android</span>
+          </div>
+
+          <!-- Enlace directo para pruebas o desktop -->
+          <div class="mt-2">
+            <a id="desktopDirectLink" href="#" class="text-[11px] font-mono text-sky-400 hover:underline">
+              Abrir enlace directo del visor →
+            </a>
           </div>
         </div>
 
@@ -224,15 +269,17 @@
 
   <script>
     const MOTOS_CONFIG = {
-      'tvs-raider': {
-        id: 'tvs-raider',
-        nombre: 'TVS Raider 125',
-        cilindraje: '124.8 cc · 11.4 HP',
-        precio: '$7.590.000',
-        accent: '#38bdf8',
-        poster: '/posters/tvs-raider.png',
-        glb: '/models/tvs-raider_ar.glb',
-        usdz: '/models/tvs-raider_ar.usdz',
+      'hero-eco': {
+        id: 'hero-eco',
+        nombre: 'Hero Eco Deluxe',
+        cilindraje: '97.2 cc · 7.9 HP',
+        precio: '$4.190.000',
+        accent: '#10b981',
+        poster: '/posters/hero-eco.png',
+        cleanGlb: '/models/hero-eco.glb',
+        arGlb: '/models/hero-eco_ar.glb',
+        cleanUsdz: '/models/hero-eco.usdz',
+        arUsdz: '/models/hero-eco_ar.usdz',
       },
       'akt-nkd': {
         id: 'akt-nkd',
@@ -241,18 +288,10 @@
         precio: '$5.490.000',
         accent: '#a3e635',
         poster: '/posters/akt-nkd.png',
-        glb: '/models/akt-nkd_ar.glb',
-        usdz: '/models/akt-nkd_ar.usdz',
-      },
-      'pulsar-ns200': {
-        id: 'pulsar-ns200',
-        nombre: 'Pulsar NS 200 FI',
-        cilindraje: '199.5 cc · 24.5 HP',
-        precio: '$12.990.000',
-        accent: '#f43f5e',
-        poster: '/posters/pulsar-ns200.png',
-        glb: '/models/pulsar-ns200_ar.glb',
-        usdz: '/models/pulsar-ns200_ar.usdz',
+        cleanGlb: '/models/akt-nkd.glb',
+        arGlb: '/models/akt-nkd_ar.glb',
+        cleanUsdz: '/models/akt-nkd.usdz',
+        arUsdz: '/models/akt-nkd_ar.usdz',
       },
       'bajaj-boxer': {
         id: 'bajaj-boxer',
@@ -261,22 +300,37 @@
         precio: '$5.699.000',
         accent: '#eab308',
         poster: '/posters/bajaj-boxer.png',
-        glb: '/models/bajaj-boxer_ar.glb',
-        usdz: '/models/bajaj-boxer_ar.usdz',
+        cleanGlb: '/models/bajaj-boxer.glb',
+        arGlb: '/models/bajaj-boxer_ar.glb',
+        cleanUsdz: '/models/bajaj-boxer.usdz',
+        arUsdz: '/models/bajaj-boxer_ar.usdz',
       },
-      'hero-eco': {
-        id: 'hero-eco',
-        nombre: 'Hero Eco Deluxe',
-        cilindraje: '97.2 cc · 7.9 HP',
-        precio: '$4.190.000',
-        accent: '#10b981',
-        poster: '/posters/hero-eco.png',
-        glb: '/models/hero-eco_ar.glb',
-        usdz: '/models/hero-eco_ar.usdz',
+      'pulsar-ns200': {
+        id: 'pulsar-ns200',
+        nombre: 'Pulsar NS 200 FI',
+        cilindraje: '199.5 cc · 24.5 HP',
+        precio: '$12.990.000',
+        accent: '#f43f5e',
+        poster: '/posters/pulsar-ns200.png',
+        cleanGlb: '/models/pulsar-ns200.glb',
+        arGlb: '/models/pulsar-ns200_ar.glb',
+        cleanUsdz: '/models/pulsar-ns200.usdz',
+        arUsdz: '/models/pulsar-ns200_ar.usdz',
+      },
+      'tvs-raider': {
+        id: 'tvs-raider',
+        nombre: 'TVS Raider 125',
+        cilindraje: '124.8 cc · 11.4 HP',
+        precio: '$7.590.000',
+        accent: '#38bdf8',
+        poster: '/posters/tvs-raider.png',
+        cleanGlb: '/models/tvs-raider.glb',
+        arGlb: '/models/tvs-raider_ar.glb',
+        cleanUsdz: '/models/tvs-raider.usdz',
+        arUsdz: '/models/tvs-raider_ar.usdz',
       }
     };
 
-    // Alias mapping
     const ALIASES = {
       'raider': 'tvs-raider',
       'tvs': 'tvs-raider',
@@ -293,11 +347,11 @@
     };
 
     function resolveMotoId(param) {
-      if (!param) return 'tvs-raider';
+      if (!param) return 'hero-eco';
       const clean = param.trim().toLowerCase();
       if (MOTOS_CONFIG[clean]) return clean;
       if (ALIASES[clean] && MOTOS_CONFIG[ALIASES[clean]]) return ALIASES[clean];
-      return 'tvs-raider';
+      return 'hero-eco';
     }
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -305,140 +359,145 @@
     const isMobile = isIOS || isAndroid || (window.innerWidth <= 768);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const motoId = resolveMotoId(urlParams.get('moto'));
-    const moto = MOTOS_CONFIG[motoId];
+    let currentMotoId = resolveMotoId(urlParams.get('moto'));
+    let currentMode = urlParams.get('mode') === 'clean' ? 'clean' : 'ar';
 
-    document.documentElement.style.setProperty('--accent-glow', moto.accent);
+    function updatePills() {
+      document.querySelectorAll('.moto-pill').forEach(btn => {
+        const id = btn.dataset.moto;
+        if (id === currentMotoId) {
+          btn.className = 'moto-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold border border-sky-400 bg-sky-500/20 text-sky-300 shadow-sm transition-all';
+        } else {
+          btn.className = 'moto-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-slate-700 bg-slate-900/60 text-slate-400 hover:text-white transition-all';
+        }
+      });
+    }
 
-    if (isMobile) {
-      initMobileLauncher();
-    } else {
-      initDesktopView();
+    function selectMoto(id) {
+      currentMotoId = id;
+      syncUrl();
+      updatePills();
+      if (isMobile) {
+        renderMobileView();
+      } else {
+        renderDesktopView();
+      }
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      syncUrl();
+      if (isMobile) {
+        renderMobileView();
+      } else {
+        renderDesktopView();
+      }
+    }
+
+    function syncUrl() {
+      const newUrl = `${window.location.pathname}?moto=${currentMotoId}&mode=${currentMode}`;
+      window.history.replaceState({}, '', newUrl);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // MOBILE LAUNCHER (Preload con ReadableStream + Auto Trigger)
+    // RENDER MOBILE
     // ─────────────────────────────────────────────────────────────
-    async function initMobileLauncher() {
-      const mobileView = document.getElementById('mobileView');
-      mobileView.classList.remove('hidden');
+    function renderMobileView() {
+      const moto = MOTOS_CONFIG[currentMotoId];
+      document.documentElement.style.setProperty('--accent-glow', moto.accent);
 
       document.getElementById('mobilePoster').src = moto.poster;
       document.getElementById('mobileTitle').textContent = moto.nombre;
       document.getElementById('mobileSubtitle').textContent = moto.cilindraje;
+      document.getElementById('mobilePrice').textContent = moto.precio;
 
-      const targetUrl = isIOS ? moto.usdz : moto.glb;
-      const progressBar = document.getElementById('progressBar');
-      const progressPct = document.getElementById('progressPct');
-      const progressStatus = document.getElementById('progressStatus');
-      const progressBytes = document.getElementById('progressBytes');
-      const preloadContainer = document.getElementById('preloadContainer');
-      const readyContainer = document.getElementById('readyContainer');
-      const errorContainer = document.getElementById('errorContainer');
+      const btnAr = document.getElementById('mobileModeAr');
+      const btnClean = document.getElementById('mobileModeClean');
+      const desc = document.getElementById('mobileModeDesc');
+
+      if (currentMode === 'ar') {
+        btnAr.className = 'py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-[#38bdf8] text-[#0b1326] shadow-md';
+        btnClean.className = 'py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-[#bdc8d1] hover:text-white';
+        desc.textContent = '⚡ Con Fichas Técnicas 3D flotantes señalando motor, frenos, potencia y chasis.';
+      } else {
+        btnClean.className = 'py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 bg-[#38bdf8] text-[#0b1326] shadow-md';
+        btnAr.className = 'py-2 px-2.5 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-[#bdc8d1] hover:text-white';
+        desc.textContent = '✨ Moto Limpia a escala real 1:1 para apreciar el diseño puro de la carrocería.';
+      }
+
       const launchArBtn = document.getElementById('launchArBtn');
       const launchArBtnText = document.getElementById('launchArBtnText');
-
-      progressBar.style.backgroundColor = moto.accent;
-      progressPct.style.color = moto.accent;
       launchArBtn.style.backgroundColor = moto.accent;
 
       if (isIOS) {
-        launchArBtnText.textContent = 'Ver en tu espacio (Quick Look)';
+        launchArBtnText.textContent = `Abrir AR (${currentMode === 'ar' ? 'Fichas 3D' : 'Limpia'})`;
       } else {
-        launchArBtnText.textContent = 'Ver en tu espacio (Scene Viewer)';
+        launchArBtnText.textContent = `Abrir AR (${currentMode === 'ar' ? 'Fichas 3D' : 'Limpia'})`;
       }
+    }
 
-      // Action trigger handler
-      const triggerAR = () => {
-        if (isIOS) {
-          const anchor = document.getElementById('iosArAnchor');
-          const img = document.getElementById('iosArImg');
-          img.src = moto.poster;
-          anchor.setAttribute('href', `${moto.usdz}#allowsContentScaling=0`);
-          anchor.click();
-        } else if (isAndroid) {
-          const fullGlbUrl = new URL(moto.glb, window.location.origin).href;
-          const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(fullGlbUrl)}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
-          window.location.href = intentUrl;
-        } else {
-          // Fallback if mobile is unexpected OS
-          window.location.href = `/MotosARCatalog/?moto=${moto.id}`;
-        }
-      };
+    function triggerAR() {
+      const moto = MOTOS_CONFIG[currentMotoId];
+      const targetUsdz = currentMode === 'ar' ? moto.arUsdz : moto.cleanUsdz;
+      const targetGlb = currentMode === 'ar' ? moto.arGlb : moto.cleanGlb;
 
-      launchArBtn.addEventListener('click', triggerAR);
+      const statusEl = document.getElementById('mobileStatusText');
+      if (statusEl) statusEl.textContent = 'Lanzando Realidad Aumentada...';
 
-      try {
-        progressStatus.textContent = 'Descargando modelo 3D para AR...';
-        const response = await fetch(targetUrl);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const contentLength = response.headers.get('content-length');
-        const total = contentLength ? parseInt(contentLength, 10) : 0;
-
-        let loaded = 0;
-        const reader = response.body.getReader();
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          loaded += value.byteLength;
-          if (total > 0) {
-            const pct = Math.min(100, Math.round((loaded / total) * 100));
-            progressBar.style.width = `${pct}%`;
-            progressPct.textContent = `${pct}%`;
-            const loadedMB = (loaded / (1024 * 1024)).toFixed(1);
-            const totalMB = (total / (1024 * 1024)).toFixed(1);
-            progressBytes.textContent = `${loadedMB} MB de ${totalMB} MB`;
-          } else {
-            const loadedMB = (loaded / (1024 * 1024)).toFixed(1);
-            progressBytes.textContent = `${loadedMB} MB descargados...`;
-          }
-        }
-
-        // Descarga completada
-        progressBar.style.width = '100%';
-        progressPct.textContent = '100%';
-        progressStatus.textContent = '¡Descarga completada!';
-
-        preloadContainer.classList.add('hidden');
-        readyContainer.classList.remove('hidden');
-
-        // Disparo automático inteligente
-        setTimeout(() => {
-          triggerAR();
-        }, 300);
-
-      } catch (err) {
-        console.error('Error precargando modelo AR:', err);
-        preloadContainer.classList.add('hidden');
-        errorContainer.classList.remove('hidden');
-        document.getElementById('errorMessage').textContent = err.message || 'Error de conexión';
+      if (isIOS) {
+        const anchor = document.getElementById('iosArAnchor');
+        const img = document.getElementById('iosArImg');
+        img.src = moto.poster;
+        anchor.setAttribute('href', `${targetUsdz}#allowsContentScaling=0`);
+        anchor.click();
+      } else if (isAndroid) {
+        const fullGlbUrl = new URL(targetGlb, window.location.origin).href;
+        const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(fullGlbUrl)}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
+        window.location.href = intentUrl;
+      } else {
+        // En navegador de escritorio simular o redirigir
+        window.location.href = `/MotosARCatalog/?moto=${moto.id}&mode=${currentMode}`;
       }
     }
 
     // ─────────────────────────────────────────────────────────────
-    // DESKTOP VIEW (Visor 3D Interactivo + Código QR Instantáneo)
+    // RENDER DESKTOP
     // ─────────────────────────────────────────────────────────────
-    function initDesktopView() {
-      const desktopView = document.getElementById('desktopView');
-      desktopView.classList.remove('hidden');
+    function renderDesktopView() {
+      const moto = MOTOS_CONFIG[currentMotoId];
+      document.documentElement.style.setProperty('--accent-glow', moto.accent);
 
       document.getElementById('desktopTitle').textContent = moto.nombre;
+      document.getElementById('desktopCilindraje').textContent = moto.cilindraje;
       document.getElementById('desktopPrice').textContent = moto.precio;
       document.getElementById('desktopMvPoster').src = moto.poster;
 
-      const mv = document.getElementById('desktopMv');
-      mv.setAttribute('src', moto.glb);
-      mv.setAttribute('poster', moto.poster);
+      const btnAr = document.getElementById('desktopModeAr');
+      const btnClean = document.getElementById('desktopModeClean');
+      const badge = document.getElementById('desktopModeBadge');
 
-      // Generar Código QR con la URL móvil exacta
-      const fullUrl = `${window.location.origin}/ar.html?moto=${moto.id}`;
+      if (currentMode === 'ar') {
+        btnAr.className = 'py-1.5 px-3 rounded-xl font-mono text-xs font-bold transition-all bg-[#38bdf8] text-[#0b1326] shadow-sm flex items-center justify-center gap-1';
+        btnClean.className = 'py-1.5 px-3 rounded-xl font-mono text-xs font-bold transition-all text-[#bdc8d1] hover:text-white flex items-center justify-center gap-1';
+        badge.textContent = 'Modo Holográfico (Fichas Técnicas 3D)';
+      } else {
+        btnClean.className = 'py-1.5 px-3 rounded-xl font-mono text-xs font-bold transition-all bg-[#38bdf8] text-[#0b1326] shadow-sm flex items-center justify-center gap-1';
+        btnAr.className = 'py-1.5 px-3 rounded-xl font-mono text-xs font-bold transition-all text-[#bdc8d1] hover:text-white flex items-center justify-center gap-1';
+        badge.textContent = 'Modo Showroom (Moto Limpia 1:1)';
+      }
+
+      // Actualizar visor 3D
+      const targetGlb = currentMode === 'ar' ? moto.arGlb : moto.cleanGlb;
+      const mv = document.getElementById('desktopMv');
+      if (mv.src !== targetGlb && mv.getAttribute('src') !== targetGlb) {
+        mv.src = targetGlb;
+        mv.poster = moto.poster;
+      }
+
+      // Generar Código QR
+      const fullUrl = `${window.location.origin}/ar.html?moto=${moto.id}&mode=${currentMode}`;
       const qrEl = document.getElementById('desktopQr');
       qrEl.innerHTML = '';
-
       new QRCode(qrEl, {
         text: fullUrl,
         width: 170,
@@ -447,8 +506,26 @@
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.H,
       });
+
+      const directLink = document.getElementById('desktopDirectLink');
+      if (directLink) {
+        directLink.href = fullUrl;
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────────────────────────
+    updatePills();
+
+    if (isMobile) {
+      document.getElementById('mobileView').classList.remove('hidden');
+      document.getElementById('launchArBtn').addEventListener('click', triggerAR);
+      renderMobileView();
+    } else {
+      document.getElementById('desktopView').classList.remove('hidden');
+      renderDesktopView();
     }
   </script>
 </body>
 </html>
-

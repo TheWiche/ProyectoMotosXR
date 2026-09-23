@@ -38,11 +38,14 @@ const MOTOS = [
     tanque:      '10 L',
     precio:      6290000,
     financiado:  'Desde $118.000/mes',
-    glb:         '/models/tvs-raider.glb',
-    usdz:        '/models/tvs-raider_ar.usdz',
+    cleanGlb:    '/models/tvs-raider.glb',
     arGlb:       '/models/tvs-raider_ar.glb',
+    cleanUsdz:   '/models/tvs-raider.usdz',
+    arUsdz:      '/models/tvs-raider_ar.usdz',
+    glb:         '/models/tvs-raider_ar.glb',
+    usdz:        '/models/tvs-raider_ar.usdz',
     poster:      '/posters/tvs-raider.png',
-    acento:      '#a78bfa',   /* violet-400 */
+    acento:      '#38bdf8',   /* cyan-400 */
     tags:        ['Sport', 'Premium', '125cc', '3D HD'],
     descripcion: 'Tecnología Racing DNA de TVS. Diseño deportivo premium con panel LCD, faros LED y freno de disco delantero. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
     disponible:  true,
@@ -61,9 +64,12 @@ const MOTOS = [
     tanque:      '13.5 L',
     precio:      5990000,
     financiado:  'Desde $112.000/mes',
-    glb:         '/models/akt-nkd.glb',
-    usdz:        '/models/akt-nkd_ar.usdz',
+    cleanGlb:    '/models/akt-nkd.glb',
     arGlb:       '/models/akt-nkd_ar.glb',
+    cleanUsdz:   '/models/akt-nkd.usdz',
+    arUsdz:      '/models/akt-nkd_ar.usdz',
+    glb:         '/models/akt-nkd_ar.glb',
+    usdz:        '/models/akt-nkd_ar.usdz',
     poster:      '/posters/akt-nkd.png',
     acento:      '#a3e635',   /* lime-400 */
     tags:        ['Ciudad', 'Café Racer', '125cc', '3D HD'],
@@ -84,9 +90,12 @@ const MOTOS = [
     tanque:      '12 L',
     precio:      12490000,
     financiado:  'Desde $234.000/mes',
-    glb:         '/models/pulsar-ns200.glb',
-    usdz:        '/models/pulsar-ns200_ar.usdz',
+    cleanGlb:    '/models/pulsar-ns200.glb',
     arGlb:       '/models/pulsar-ns200_ar.glb',
+    cleanUsdz:   '/models/pulsar-ns200.usdz',
+    arUsdz:      '/models/pulsar-ns200_ar.usdz',
+    glb:         '/models/pulsar-ns200_ar.glb',
+    usdz:        '/models/pulsar-ns200_ar.usdz',
     poster:      '/posters/pulsar-ns200.png',
     acento:      '#f43f5e',   /* rose-500 */
     tags:        ['Sport', 'Performance', '200cc', '3D HD'],
@@ -107,11 +116,14 @@ const MOTOS = [
     tanque:      '15 L',
     precio:      4490000,
     financiado:  'Desde $84.000/mes',
-    glb:         '/models/bajaj-boxer.glb',
-    usdz:        '/models/bajaj-boxer_ar.usdz',
+    cleanGlb:    '/models/bajaj-boxer.glb',
     arGlb:       '/models/bajaj-boxer_ar.glb',
+    cleanUsdz:   '/models/bajaj-boxer.usdz',
+    arUsdz:      '/models/bajaj-boxer_ar.usdz',
+    glb:         '/models/bajaj-boxer_ar.glb',
+    usdz:        '/models/bajaj-boxer_ar.usdz',
     poster:      '/posters/bajaj-boxer.png',
-    acento:      '#fb923c',   /* orange-400 */
+    acento:      '#eab308',   /* amber-500 */
     tags:        ['Trabajo', 'Campo', '100cc', '3D HD'],
     descripcion: 'La moto más robusta y guerrera del país. Durabilidad legendaria y mínimo consumo de combustible. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
     disponible:  true,
@@ -130,11 +142,14 @@ const MOTOS = [
     tanque:      '10.5 L',
     precio:      4190000,
     financiado:  'Desde $79.000/mes',
-    glb:         '/models/hero-eco.glb',
-    usdz:        '/models/hero-eco_ar.usdz',
+    cleanGlb:    '/models/hero-eco.glb',
     arGlb:       '/models/hero-eco_ar.glb',
+    cleanUsdz:   '/models/hero-eco.usdz',
+    arUsdz:      '/models/hero-eco_ar.usdz',
+    glb:         '/models/hero-eco_ar.glb',
+    usdz:        '/models/hero-eco_ar.usdz',
     poster:      '/posters/hero-eco.png',
-    acento:      '#38bdf8',   /* sky-400 */
+    acento:      '#10b981',   /* emerald-500 */
     tags:        ['Ahorro', 'Ciudad', '100cc', '3D HD'],
     descripcion: 'La campeona de la economía con tecnología i3S de ahorro de combustible. Confortable y confiable. Modelo 3D HD optimizado listo para Realidad Aumentada 1:1.',
     disponible:  true,
@@ -147,6 +162,8 @@ const MOTOS = [
 ══════════════════════════════════════════════ */
 const state = {
   motoIdx:        0,
+  arMode:         'ar',       /* 'ar' (con anotaciones 3D) o 'clean' (moto limpia) */
+  fichaAbierta:   false,
   fichaAbierta:   false,
   arPrompt:       false,
   qrListo:        false,
@@ -206,6 +223,10 @@ function bindEls() {
     stickerPrecio:      document.getElementById('stickerPrecio'),
     qrUrlDisplay:       document.getElementById('qrUrlDisplay'),
     printBtn:           document.getElementById('printBtn'),
+    downloadCardBtn:    document.getElementById('downloadCardBtn'),
+    copyUrlBtn:         document.getElementById('copyUrlBtn'),
+    modeBtnAr:          document.getElementById('modeBtnAr'),
+    modeBtnClean:       document.getElementById('modeBtnClean'),
     arToast:            document.getElementById('arToast'),
     arToastMsg:         document.getElementById('arToastMsg'),
     arToastTitle:       document.getElementById('arToastTitle'),
@@ -350,22 +371,35 @@ function loadMoto(idx) {
   el.loadOverlay.classList.remove('hidden', 'fade-out');
   el.loadBar.style.width = '0%';
 
+  const currentMode = state.arMode || 'ar';
+  const targetGlb = (currentMode === 'ar' ? m.arGlb : m.cleanGlb) || m.glb;
+  const targetUsdz = (currentMode === 'ar' ? m.arUsdz : m.cleanUsdz) || m.usdz;
+
+  // Actualizar estado visual de los botones de modo
+  if (el.modeBtnAr && el.modeBtnClean) {
+    el.modeBtnAr.classList.toggle('active', currentMode === 'ar');
+    el.modeBtnClean.classList.toggle('active', currentMode === 'clean');
+  }
+
   el.mv.setAttribute('poster', m.poster);
-  el.mv.removeAttribute('src');
-  if (m.usdz) {
-    el.mv.setAttribute('ios-src', m.usdz);
+  if (targetUsdz) {
+    el.mv.setAttribute('ios-src', targetUsdz);
   } else {
     el.mv.removeAttribute('ios-src');
   }
-  requestAnimationFrame(() => {
-    el.mv.setAttribute('src', m.glb);
-    el.mv.scale = m.scale || '1 1 1';
-  });
+
+  // Asignar directamente src si cambia
+  if (el.mv.getAttribute('src') !== targetGlb) {
+    el.mv.setAttribute('src', targetGlb);
+  } else {
+    hideLoadOverlay();
+  }
+  el.mv.scale = m.scale || '1 1 1';
 
   /* Configurar enlace nativo para Apple Quick Look (iOS) */
   if (el.btnLaunchNativeAR) {
-    if (m.usdz) {
-      const fullUsdz = window.location.origin + m.usdz + '#allowsContentScaling=0';
+    if (targetUsdz) {
+      const fullUsdz = window.location.origin + targetUsdz + '#allowsContentScaling=0';
       el.btnLaunchNativeAR.setAttribute('href', fullUsdz);
       el.btnLaunchNativeAR.setAttribute('rel', 'ar');
     } else {
@@ -379,12 +413,46 @@ function loadMoto(idx) {
   /* Si la cámara AR está activa, sincronizar también el modelo de la cámara */
   if (state.isCameraActive && el.cameraMv) {
     el.arCamMotoNombre.textContent = m.nombre;
-    el.cameraMv.setAttribute('src', m.glb);
-    if (m.usdz) el.cameraMv.setAttribute('ios-src', m.usdz);
+    el.cameraMv.setAttribute('src', targetGlb);
+    if (targetUsdz) el.cameraMv.setAttribute('ios-src', targetUsdz);
   }
 
-  /* Timeout de seguridad en caso de redes móviles lentas */
-  state.loadTimer = setTimeout(() => hideLoadOverlay(), 25000);
+  /* Timeout de seguridad rápido para evitar cuelgues (8 segundos) */
+  state.loadTimer = setTimeout(() => hideLoadOverlay(), 8000);
+}
+
+function setViewModelMode(mode) {
+  state.arMode = mode;
+  const m = MOTOS[state.motoIdx];
+  const targetGlb = (mode === 'ar' ? m.arGlb : m.cleanGlb) || m.glb;
+  const targetUsdz = (mode === 'ar' ? m.arUsdz : m.cleanUsdz) || m.usdz;
+
+  if (el.modeBtnAr && el.modeBtnClean) {
+    el.modeBtnAr.classList.toggle('active', mode === 'ar');
+    el.modeBtnClean.classList.toggle('active', mode === 'clean');
+  }
+
+  // Breve micro-loader de feedback
+  el.loadOverlay.classList.remove('hidden', 'fade-out');
+  el.loadBar.style.width = '40%';
+  clearTimeout(state.loadTimer);
+  state.loadTimer = setTimeout(() => hideLoadOverlay(), 6000);
+
+  el.mv.setAttribute('src', targetGlb);
+  if (targetUsdz) {
+    el.mv.setAttribute('ios-src', targetUsdz);
+  }
+
+  if (el.btnLaunchNativeAR && targetUsdz) {
+    el.btnLaunchNativeAR.setAttribute('href', window.location.origin + targetUsdz + '#allowsContentScaling=0');
+  }
+
+  // Actualizar modal QR si está abierto
+  if (el.qrModal && !el.qrModal.classList.contains('hidden')) {
+    openQRModal();
+  }
+
+  showARToast(mode === 'ar' ? '⚡ Modo Fichas Técnicas 3D activado' : '✨ Modo Moto Limpia 1:1 activado');
 
   /* Ficha técnica */
   el.motoMarca.textContent  = m.marca;
@@ -1162,11 +1230,12 @@ function toggleFicha(force) {
 
 
 /* ══════════════════════════════════════════════
-   QR MODAL
+   QR MODAL & TARJETA DE VITRINA
 ══════════════════════════════════════════════ */
 function openQRModal() {
   const m   = MOTOS[state.motoIdx];
-  const url = window.location.origin + '/ar.html?moto=' + m.id;
+  const mode = state.arMode || 'ar';
+  const url = window.location.origin + '/ar.html?moto=' + m.id + '&mode=' + mode;
 
   el.stickerNombre.textContent = m.nombre;
   el.stickerPrecio.textContent = formatCOP(m.precio);
@@ -1200,8 +1269,125 @@ function closeQRModal() {
 }
 
 function printSticker() {
-  if (!state.qrListo) return;
+  if (!state.qrListo) {
+    showARToast('Generando código QR, espera un momento...');
+    return;
+  }
   window.print();
+}
+
+function copyARUrl() {
+  const m = MOTOS[state.motoIdx];
+  const mode = state.arMode || 'ar';
+  const url = window.location.origin + '/ar.html?moto=' + m.id + '&mode=' + mode;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      showARToast('📋 ¡Enlace copiado al portapapeles!');
+    }).catch(() => {
+      prompt('Copia este enlace para compartir:', url);
+    });
+  } else {
+    prompt('Copia este enlace para compartir:', url);
+  }
+}
+
+function downloadCardPNG() {
+  if (!state.qrListo) {
+    showARToast('Generando código QR, intenta en un momento...');
+    return;
+  }
+  const m = MOTOS[state.motoIdx];
+  const qrCanvas = el.qrContainer.querySelector('canvas') || el.qrContainer.querySelector('img');
+  if (!qrCanvas) {
+    showARToast('Esperando QR...');
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 1000;
+  canvas.height = 1350;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo oscuro elegante
+  ctx.fillStyle = '#0b1326';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Borde temático neón con acento de la moto
+  ctx.strokeStyle = m.acento || '#38bdf8';
+  ctx.lineWidth = 10;
+  ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+
+  // Línea sutil interna
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(34, 34, canvas.width - 68, canvas.height - 68);
+
+  // Logo MotosXR
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 50px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('MotosXR', canvas.width / 2, 105);
+
+  ctx.fillStyle = m.acento || '#38bdf8';
+  ctx.font = 'bold 20px monospace';
+  ctx.fillText('REALIDAD AUMENTADA 1:1 · COLOMBIA', canvas.width / 2, 148);
+
+  // Nombre de la moto
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 54px sans-serif';
+  ctx.fillText(m.nombre.toUpperCase(), canvas.width / 2, 240);
+
+  // Precio
+  ctx.fillStyle = m.acento || '#38bdf8';
+  ctx.font = 'bold 44px monospace';
+  ctx.fillText(formatCOP(m.precio), canvas.width / 2, 305);
+
+  // Pills de especificaciones técnicas
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.fillRect(140, 350, canvas.width - 280, 58);
+  ctx.fillStyle = '#dae2fd';
+  ctx.font = '22px sans-serif';
+  ctx.fillText(`${m.cilindraje}  ·  ${m.potencia}  ·  ${m.peso}  ·  Tanque ${m.tanque}`, canvas.width / 2, 388);
+
+  // Cuadro blanco para el código QR
+  const qrBoxSize = 480;
+  const qrBoxX = (canvas.width - qrBoxSize) / 2;
+  const qrBoxY = 445;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize);
+
+  // Dibujar QR dentro del cuadro blanco
+  ctx.drawImage(qrCanvas, qrBoxX + 25, qrBoxY + 25, qrBoxSize - 50, qrBoxSize - 50);
+
+  // Texto de llamado a la acción
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.fillText('ESCANEA CON LA CÁMARA DE TU CELULAR', canvas.width / 2, 990);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '20px sans-serif';
+  ctx.fillText('Apunta a una superficie plana en tu sala o garaje', canvas.width / 2, 1035);
+  ctx.fillText('Sin descargar aplicaciones · Compatible con iPhone y Android', canvas.width / 2, 1070);
+
+  // Modo actual indicado
+  const isArMode = (state.arMode || 'ar') === 'ar';
+  ctx.fillStyle = isArMode ? 'rgba(56, 189, 248, 0.2)' : 'rgba(163, 230, 53, 0.2)';
+  ctx.fillRect(200, 1120, canvas.width - 400, 50);
+  ctx.fillStyle = isArMode ? '#38bdf8' : '#a3e635';
+  ctx.font = 'bold 18px monospace';
+  ctx.fillText(isArMode ? '⚡ INCLUYE FICHAS TÉCNICAS HOLOGRÁFICAS 3D' : '✨ SHOWROOM REALISTA LIMPIO 1:1', canvas.width / 2, 1152);
+
+  // Footer
+  ctx.fillStyle = '#64748b';
+  ctx.font = '16px monospace';
+  ctx.fillText(`motosxr.vercel.app · Catálogo Oficial`, canvas.width / 2, 1270);
+
+  // Descargar archivo PNG
+  const link = document.createElement('a');
+  link.download = `MotosXR_${m.id}_Tarjeta_AR.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showARToast('✅ Tarjeta AR descargada con éxito');
 }
 
 /* ══════════════════════════════════════════════
@@ -1339,13 +1525,19 @@ function initEvents() {
     if (window.innerWidth < 1024) toggleFicha();
   });
 
-  /* QR modal */
+  /* QR modal & Tarjeta */
   el.qrBtn.addEventListener('click', openQRModal);
   el.qrModalClose.addEventListener('click', closeQRModal);
   el.qrModal.addEventListener('click', e => {
     if (e.target === el.qrModal) closeQRModal();
   });
   el.printBtn.addEventListener('click', printSticker);
+  if (el.downloadCardBtn) el.downloadCardBtn.addEventListener('click', downloadCardPNG);
+  if (el.copyUrlBtn) el.copyUrlBtn.addEventListener('click', copyARUrl);
+
+  /* Switch Dual de Modo AR / 3D */
+  if (el.modeBtnAr) el.modeBtnAr.addEventListener('click', () => setViewModelMode('ar'));
+  if (el.modeBtnClean) el.modeBtnClean.addEventListener('click', () => setViewModelMode('clean'));
 
   /* Navegación por teclado */
   document.addEventListener('keydown', e => {
