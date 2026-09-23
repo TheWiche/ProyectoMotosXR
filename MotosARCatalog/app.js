@@ -222,7 +222,6 @@ function bindEls() {
     stickerNombre:      document.getElementById('stickerNombre'),
     stickerPrecio:      document.getElementById('stickerPrecio'),
     qrUrlDisplay:       document.getElementById('qrUrlDisplay'),
-    printBtn:           document.getElementById('printBtn'),
     downloadCardBtn:    document.getElementById('downloadCardBtn'),
     copyUrlBtn:         document.getElementById('copyUrlBtn'),
     modeBtnAr:          document.getElementById('modeBtnAr'),
@@ -1268,14 +1267,6 @@ function closeQRModal() {
   el.qrModal.classList.add('hidden');
 }
 
-function printSticker() {
-  if (!state.qrListo) {
-    showARToast('Generando código QR, espera un momento...');
-    return;
-  }
-  window.print();
-}
-
 function copyARUrl() {
   const m = MOTOS[state.motoIdx];
   const mode = state.arMode || 'ar';
@@ -1531,7 +1522,6 @@ function initEvents() {
   el.qrModal.addEventListener('click', e => {
     if (e.target === el.qrModal) closeQRModal();
   });
-  el.printBtn.addEventListener('click', printSticker);
   if (el.downloadCardBtn) el.downloadCardBtn.addEventListener('click', downloadCardPNG);
   if (el.copyUrlBtn) el.copyUrlBtn.addEventListener('click', copyARUrl);
 
